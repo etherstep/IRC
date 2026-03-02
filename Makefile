@@ -114,7 +114,7 @@ clean:
 		"$(YELLOW)" "$(NAME)" "$(RESET)"; \
 	else \
 		echo "> [ $(NAME) ] $(BOLD)$(YELLOW) Nothing to be done with \
-		$(RESET)$(WHITE)clean$(RESET)"; \
+		$(RESET)$(BOLD)$(WHITE)clean$(RESET)"; \
 	fi
 
 # Complete cleanup including executables and external libraries
