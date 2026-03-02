@@ -21,6 +21,7 @@ INC				:= -I./include
 
 # Dependency generation flags
 DEPFLAGS		= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+MAKEFLAGS		+= -s
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ VISUAL STYLING ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
@@ -53,8 +54,7 @@ TOTAL_SRCS			:= $(words $(SRCS))
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ BUILD TARGETS ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
 # Default target with intelligent rebuild detection
-all:
-	@$(MAKE) -s $(NAME)
+all: $(NAME)
 	@if [ ! -f $(OBJ_DIR)/.built ]; then \
 		echo ">$(BOLD)$(YELLOW) $(NAME) is already up to date.$(RESET)"; \
 	else \
@@ -132,8 +132,8 @@ fclean: clean
 # Full rebuild from clean slate
 re:
 	@echo "> [ $(NAME) ] $(BOLD)$(WHITE) Rebuilding from scratch...$(RESET)"
-	@$(MAKE) fclean --no-print-directory
-	@$(MAKE) all --no-print-directory
+	@$(MAKE) fclean
+	@$(MAKE) all
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ TARGET DECLARATIONS ■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
