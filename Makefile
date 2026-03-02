@@ -62,7 +62,8 @@ OBJ_FILES_EXIST		:= $(shell [ -n "$(wildcard $(OBJ_DIR)/*.o)" ] \
 
 # Looking for updated header files
 LATEST_HEADER		:= $(shell find include \
-							-name "*.hpp" -o -name "*.tpp" 2>/dev/null | xargs ls -t \
+							-name "*.hpp" -o -name "*.tpp" \
+							2>/dev/null | xargs ls -t \
 							2>/dev/null | head -1)
 
 # Check if binary is up to date
