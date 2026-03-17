@@ -6,6 +6,9 @@
 // irssi
 // /connect 127.0.0.1 6767
 
+int main() {
+	std::cout << "hello world\n";
+	return 0;
 struct clientDetails {
     int32_t          clientfd;
     int32_t          serverfd;
