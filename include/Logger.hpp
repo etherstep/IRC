@@ -14,9 +14,6 @@ public:
 
     template <typename T>
     Logger& operator<<(const T& msg) {
-        if (logFile.is_open()) {
-            logFile << msg;
-        }
         oss_ << msg;
         return *this;
     }

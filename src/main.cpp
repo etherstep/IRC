@@ -1,4 +1,4 @@
-
+#include "Logger.hpp"
 #include "irc.hpp"
 
 // Connect to UNIX-domain stream socket
@@ -26,6 +26,8 @@ int main(int ac, char **av) {
   auto client = new clientDetails();
   (void)ac;
   (void)av;
+  Logger::setLogFile("irc_server.log");
+  LOG << "Server starting...";
 
   client->serverfd = socket(AF_INET, SOCK_STREAM, 0);
   if (client->serverfd == -1) {

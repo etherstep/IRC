@@ -41,6 +41,7 @@ RESET			:= $(shell tput sgr0)
 
 SRCS_MAIN	:= \
 	main.cpp \
+	Logger.cpp \
 
 # Combine all source files
 SRCS		:= \
@@ -87,7 +88,7 @@ endef
 
 .PHONY: all debug clean fclean re
 # Default target
-all: _reset_progress $(NAME) 
+all: _reset_progress $(NAME)
 	@if [ ! -f $(OBJ_DIR)/.built ]; then \
 		echo ">$(BOLD)$(YELLOW) $(NAME) is already up to date.$(RESET)"; \
 	else \
