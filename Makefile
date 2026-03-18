@@ -41,6 +41,7 @@ RESET			:= $(shell tput sgr0)
 
 SRCS_MAIN	:= \
 	main.cpp \
+	Logger.cpp \
 
 # Combine all source files
 SRCS		:= \
@@ -85,8 +86,9 @@ endef
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ BUILD TARGETS ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
+.PHONY: all debug clean fclean re
 # Default target
-all: _reset_progress $(NAME) 
+all: _reset_progress $(NAME)
 	@if [ ! -f $(OBJ_DIR)/.built ]; then \
 		echo ">$(BOLD)$(YELLOW) $(NAME) is already up to date.$(RESET)"; \
 	else \
@@ -160,6 +162,3 @@ re:
 	@echo "> [ $(NAME) ] $(BOLD)$(WHITE) Rebuilding from scratch...$(RESET)"
 	@$(MAKE) fclean
 	@$(MAKE) all
-
-# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ TARGET DECLARATIONS ■■■■■■■■■■■■■■■■■■■■■■■■■ #
-.PHONY: all debug clean fclean re
