@@ -56,6 +56,7 @@ RESET		:= $(shell tput sgr0)
 SRCS_MAIN	:= \
 	main.cpp \
 	Logger.cpp \
+	Server.cpp \
 
 # Combine all source files
 SRCS		:= \
