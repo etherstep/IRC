@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+#include <cstring>
+
 Server::Server(const int32_t port, const uint32_t backlogSize,
                const std::string &pwd)
     : _port(port), _backlogSize(backlogSize), _pwd(pwd) {
@@ -40,11 +42,11 @@ void Server::start(void) {
 // FIXME: What to do if adding clientSocket->getFD to polling fails?
 // FIXME: What to do if accept() fails?
 void Server::run(void) {
-  char buffer[1024];
+  char buffer[2048];
   while (true) {
     std::cout << "Polling for new connections. Clients: ";
     std::cout << _clients.size() << std::endl;
-    _nEpollFDs = epoll_wait(_epollFD, epollEvents, _backlogSize, 1000);
+    _nEpollFDs = epoll_wait(_epollFD, epollEvents, _backlogSize, POLL_TIME);
     for (int i = 0; i < _nEpollFDs; ++i) {
       if (epollEvents[i].data.fd == _listenSocket->getFD()) {
         int32_t clientFD = accept(_listenSocket->getFD(), NULL, NULL);
@@ -54,7 +56,7 @@ void Server::run(void) {
         }
         Socket *clientSocket = Socket::makeClientSocket(clientFD);
 
-        struct epoll_event connectionPoll;
+        struct epoll_event connectionPoll{};
         connectionPoll.events = EPOLLIN;
         connectionPoll.data.fd = clientSocket->getFD();
         if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, clientSocket->getFD(),
@@ -66,12 +68,12 @@ void Server::run(void) {
         _clients.push_back(clientSocket);
       } else {
         ssize_t received =
-            recv(epollEvents[i].data.fd, buffer, 1024, MSG_DONTWAIT);
+            recv(epollEvents[i].data.fd, buffer, sizeof(buffer), MSG_DONTWAIT);
         if (received < 0)
           std::cerr << "failed to receive\n";
         std::cout << "bytes: " << received << std::endl;
         std::cout << "message: " << buffer;
-        send(epollEvents[i].data.fd, buffer, 5, 0);
+        send(epollEvents[i].data.fd, buffer, strlen(buffer), 0);
       }
     }
   }
