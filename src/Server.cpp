@@ -16,13 +16,13 @@ Server::Server(const int32_t port, const uint32_t backlogSize,
 
   _listener = Socket::makeListeningSocket(port);
   if (_listener == nullptr)
-    throw std::runtime_error("Port value out of bounds. Use value 0 - 65535");
+    throw std::runtime_error("Couldn't create listening socket");
 
-  if (setsockopt(_listenSock, SOL_SOCKET, SO_RCVBUF, &receiveBufSize,
+  if (setsockopt(_listener->getFD(), SOL_SOCKET, SO_RCVBUF, &receiveBufSize,
                  sizeof(receiveBufSize)) < 0)
     throw std::runtime_error(
         "Failed to set server listen socket receive buffer size");
-  if (setsockopt(_listenSock, SOL_SOCKET, SO_SNDBUF, &sendBufSize,
+  if (setsockopt(_listener->getFD(), SOL_SOCKET, SO_SNDBUF, &sendBufSize,
                  sizeof(sendBufSize)) < 0)
     throw std::runtime_error(
         "Failed to set server listen socket send buffer size");
@@ -30,17 +30,11 @@ Server::Server(const int32_t port, const uint32_t backlogSize,
 
 void Server::start(void) {
   _addressLen = sizeof(_address);
-  if (bind(_listenSock, (struct sockaddr *)&_address, _addressLen) < 0)
-    throw std::runtime_error("Failed to bind server socket with port " +
-                             std::to_string(_port));
-  if (listen(_listenSock, _backlogSize) < 0)
-    throw std::runtime_error("Failed to start listening from server socket");
-
   if ((_epollfd = epoll_create(_backlogSize)) < 0)
     throw std::runtime_error("Failed to set server");
   _ev.events = EPOLLIN;
-  _ev.data.fd = _listenSock;
-  if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, _listenSock, &_ev) < 0)
+  _ev.data.fd = _listener->getFD();
+  if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, _listener->getFD(), &_ev) < 0)
     throw std::runtime_error("Failed to start polling on listening socket");
 
   _events = new struct epoll_event[_backlogSize];
@@ -51,14 +45,10 @@ void Server::poll(void) {
     std::cout << "Polling for new connections\n";
     _nfds = epoll_wait(_epollfd, _events, _backlogSize, 100);
     for (int i = 0; i < _nfds; ++i) {
-      if (_events[i].data.fd == _listenSock) {
-        int32_t connectionSocket =
-            accept(_listenSock, (struct sockaddr *)&_address, &_addressLen);
-        if (setNonBlocking(connectionSocket) < 0) {
-          epoll_ctl(_epollfd, EPOLL_CTL_DEL, connectionSocket, _events);
-          continue;
-        }
-        _clients.push_back(connectionSocket);
+      if (_events[i].data.fd == _listener->getFD()) {
+        int32_t connectionFD = accept(
+            _listener->getFD(), (struct sockaddr *)&_address, &_addressLen);
+        _clients.push_back(Socket::makeClientSocket(connectionFD));
       }
     }
     std::cout << _clients.size() << std::endl;
@@ -68,18 +58,6 @@ void Server::poll(void) {
 Server::~Server(void) {
   if (_epollfd != -1)
     close(_epollfd);
-  if (_listenSock != -1)
-    close(_listenSock);
   if (_events)
     delete[] _events;
-}
-
-// NOTE: Private:
-int32_t Server::setNonBlocking(int fd) {
-  int flags = fcntl(fd, F_GETFL);
-  if (flags == -1) {
-    return (-1);
-  }
-  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-  return (0);
 }

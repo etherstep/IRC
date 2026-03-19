@@ -22,7 +22,6 @@ Socket *Socket::makeListeningSocket(int32_t port) {
     LOG << "Error creating listener socket";
     return nullptr;
   }
-  makeNonBlocking(listenerFD);
 
   int32_t option = 1;
   if (setsockopt(listenerFD, SOL_SOCKET, SO_REUSEADDR, &option,
@@ -48,13 +47,15 @@ Socket *Socket::makeListeningSocket(int32_t port) {
     close(listenerFD);
     return nullptr;
   }
-
-  return new Socket(listenerFD);
+  Socket *listener = new Socket(listenerFD);
+  listener->makeNonBlocking(listenerFD);
+  return listener;
 };
 
 Socket *Socket::makeClientSocket(int32_t clientFD) {
-  makeNonBlocking(clientFD);
-  return (new Socket(clientFD));
+  Socket *socket = new Socket(clientFD);
+  socket->makeNonBlocking(clientFD);
+  return socket;
 };
 
 void Socket::makeNonBlocking(int32_t fd) {
