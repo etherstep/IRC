@@ -81,6 +81,9 @@ GIT_TAG 	:= $(shell git rev-parse --abbrev-ref --tags)
 
 SHELL	:= /bin/bash
 
+# Adds a buld fingerprint as a macro available in
+CXXFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
+
 # Displays an animated progress bar with spinner, percentage,
 # and current file name during build
 define PROGRESS

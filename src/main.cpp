@@ -2,6 +2,10 @@
 #include "Server.hpp"
 #include "irc.hpp"
 
+#ifndef GIT_HASH
+#define GIT_HASH "unknown_build"
+#endif
+
 // Connect to UNIX-domain stream socket
 // nc -U /tmp/testsocket
 // irssi
@@ -29,6 +33,8 @@ int main(int ac, char **av) {
     return (1);
   }
   try {
+    Logger::setLogFile("irc_server.log");
+    LOG << "Starting server, build: " << GIT_HASH;
     Server server(std::stoi(av[1]), BACKLOG_SIZE, av[2]);
     server.start();
     server.poll();
