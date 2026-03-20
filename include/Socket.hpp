@@ -20,6 +20,7 @@
 class Socket {
   public:
     ~Socket();
+
     /**
      * @brief creates and returns a socket to listen on the specified port
      *
@@ -27,6 +28,7 @@ class Socket {
      * @return Socket object
      */
     static Socket *makeListeningSocket(int32_t port);
+
     /**
      * @brief Wrap a give file descriptor in a Socket object
      *
@@ -34,6 +36,7 @@ class Socket {
      * @return Socket object
      */
     static Socket *makeClientSocket(int32_t clientFD);
+
     /**
      * @brief make the give fd nonblocking with fcntl
      *
@@ -41,6 +44,7 @@ class Socket {
      * @return void
      */
     void makeNonBlocking(int32_t fd);
+
     /**
      * @brief return the contained fd
      *
@@ -48,6 +52,24 @@ class Socket {
      * @return file descriptor
      */
     int32_t getFD() const;
+
+    /**
+     * @brief Wrapper for the recv(_fd, buffer, length, 0)
+     *
+     * @param[out] buffer Pointer to memory to write into
+     * @param[in] length Length of buffer
+     * @return return value of
+     */
+    ssize_t receiveData(char *buffer, size_t length);
+
+    /**
+     * @brief  Wrapper for the send(_fd, buffer, length, 0)
+     *
+     * @param[in] buffer Pointer to message to be sent
+     * @param[in] length Length of buffer
+     * @return void
+     */
+    ssize_t sendData(const char *buffer, size_t length);
 
   private:
     Socket(int32_t fd);

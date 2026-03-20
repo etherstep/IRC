@@ -65,3 +65,11 @@ void Socket::makeNonBlocking(int32_t fd) {
 int32_t Socket::getFD() const {
   return _fd;
 }
+
+ssize_t Socket::receiveData(char *buffer, size_t length) {
+  return recv(_fd, buffer, length, 0);
+}
+
+ssize_t Socket::sendData(const char *buffer, size_t length) {
+  return send(_fd, buffer, length, 0);
+}

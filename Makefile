@@ -60,6 +60,7 @@ SRCS_MAIN	:= \
 	Logger.cpp \
 	Socket.cpp \
 	Server.cpp \
+	Connection.cpp \
 
 
 # Combine all source files

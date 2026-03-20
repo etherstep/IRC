@@ -8,10 +8,12 @@
 
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "Connection.hpp"
 #include "Socket.hpp"
 
 #define BACKLOG_SIZE 1024
@@ -21,26 +23,22 @@
 class Server {
   private:
     // Listening
-    Socket            *_listener = nullptr;
-    int32_t            _port;
-    int32_t            _listenSock = -1;
-    uint32_t           _backlogSize;
-    struct sockaddr_in _address{};
-    socklen_t          _addressLen;
+    Socket  *_listenSocket = nullptr;
+    int32_t  _port;
+    uint32_t _backlogSize;
 
     // Polling
-    struct epoll_event  _ev{};
-    struct epoll_event *_events;
-    int32_t             _epollfd = -1;
-    int32_t             _nfds;
+    struct epoll_event  _epoll{};
+    struct epoll_event *epollEvents{};
+    int32_t             _epollFD = -1;
+    int32_t             _nEpollFDs;
 
     // Clients
-    std::vector<Socket *> _clients;
+    std::vector<Connection *>       _clients;
+    std::map<int32_t, Connection *> _connectionMap;
 
     // Security
     const std::string _pwd;
-
-    int32_t setNonBlocking(int fd);
 
   public:
     Server(void) = delete;
@@ -98,5 +96,5 @@ class Server {
      */
     bool passwordIsCorrect(const std::string &pwd);
 
-    void poll(void);
+    void run(void);
 };
