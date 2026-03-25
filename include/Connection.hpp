@@ -37,6 +37,7 @@ class Connection {
     std::string getMessage();
 
     bool hasMessage();
+    bool isOpen();
 };
 
 #endif

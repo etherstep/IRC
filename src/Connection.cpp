@@ -54,3 +54,7 @@ std::string Connection::getMessage() {
 bool Connection::hasMessage() {
   return _hasMessage;
 }
+
+bool Connection::isOpen() {
+  return _isOpen;
+}

@@ -61,11 +61,19 @@ SRCS_MAIN	:= \
 	Socket.cpp \
 	Server.cpp \
 	Connection.cpp \
+	Parser.cpp \
 
 
 # Combine all source files
 SRCS		:= \
 	$(SRCS_MAIN)
+
+# Source files needed for testing
+TEST_SRCS := \
+    tests/test_main.cpp \
+    tests/test_parser.cpp \
+    src/Parser.cpp  \
+TEST_EXEC = test_runner
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ BUILD VARIABLES ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
@@ -161,6 +169,12 @@ print-version:
 debug: CXXFLAGS	+= $(DEBUG_FLAGS)
 debug: clean $(NAME)
 	@echo ">$(BOLD)$(CYAN)  Debug build completed!$(RESET)"
+
+test:
+	@echo "Compiling tests..."
+	$(CXX) $(CXXFLAGS) $(TEST_SRCS) -o $(TEST_EXEC) $(INC)
+	@echo "Running tests:\n"
+	./$(TEST_EXEC)
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ CLEAN TARGETS ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ #
 
