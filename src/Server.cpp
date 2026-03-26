@@ -1,5 +1,10 @@
 #include "Server.hpp"
 
+#include <iostream>
+#include <stdexcept>
+
+#include "Logger.hpp"
+
 Server::Server(const int32_t port, const uint32_t backlogSize,
                const std::string &pwd)
     : _port(port), _backlogSize(backlogSize), _pwd(pwd) {
@@ -61,16 +66,31 @@ void Server::run(void) {
           std::cerr << "Failed to add connectiont to polling list\n";
           continue;
         }
-        Connection *connection = new Connection(clientSocket);
+        Client *connection = new Client(clientSocket);
         _clients.push_back(connection);
-        _connectionMap[clientFD] = connection;
+        _ClientMap[clientFD] = connection;
       } else {
-        _connectionMap[epollEvents[i].data.fd]->readSocket();
-        if (_connectionMap[epollEvents[i].data.fd]->hasMessage())
+        _ClientMap[epollEvents[i].data.fd]->readSocket();
+        if (_ClientMap[epollEvents[i].data.fd]->hasMessage())
           send(epollEvents[i].data.fd, buffer, 5, 0);
       }
     }
   }
+}
+
+void Server::handlePassword(Client *client, const Command &cmd) {
+  (void)client, (void)cmd;
+  LOG << "handling PASS command";
+}
+
+void Server::handleNickname(Client *client, const Command &cmd) {
+  (void)client, (void)cmd;
+  LOG << "handling NICK command";
+}
+
+void Server::handleUserJoin(Client *client, const Command &cmd) {
+  (void)client, (void)cmd;
+  LOG << "handling NICK command";
 }
 
 Server::~Server(void) {

@@ -1,4 +1,4 @@
-#include "Connection.hpp"
+#include "Client.hpp"
 
 #include <cerrno>
 #include <stdexcept>
@@ -7,19 +7,19 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 
-Connection::Connection(Socket *soc)
+Client::Client(Socket *soc)
     : _socket(soc), _socketBuffer(""), _hasMessage(false), _isOpen(true) {};
 
-Connection::~Connection() {
+Client::~Client() {
   if (_socket != nullptr)
     delete _socket;
 };
 
-bool Connection::checkBuffer() {
+bool Client::checkBuffer() {
   return false;
 }
 
-void Connection::readSocket() {
+void Client::readSocket() {
   char    buffer[RCVBUF_SIZE] = {};
   ssize_t bytesRead = _socket->receiveData(buffer, RCVBUF_SIZE);
   if (bytesRead > 0) {
@@ -35,7 +35,7 @@ void Connection::readSocket() {
   }
 }
 
-std::string Connection::getMessage() {
+std::string Client::getMessage() {
   if (!_hasMessage)
     return "";
   std::string msg;
@@ -51,10 +51,10 @@ std::string Connection::getMessage() {
   return msg;
 }
 
-bool Connection::hasMessage() {
+bool Client::hasMessage() {
   return _hasMessage;
 }
 
-bool Connection::isOpen() {
+bool Client::isOpen() {
   return _isOpen;
 }

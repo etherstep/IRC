@@ -1,10 +1,10 @@
-#ifndef CONNECTION_HPP
-#define CONNECTION_HPP
+#ifndef Client_HPP
+#define Client_HPP
 #include <string>
 
 #include "Socket.hpp"
 
-class Connection {
+class Client {
   private:
     Socket     *_socket;
     std::string _socketBuffer;
@@ -19,8 +19,8 @@ class Connection {
     bool checkBuffer();
 
   public:
-    Connection(Socket *soc);
-    ~Connection();
+    Client(Socket *soc);
+    ~Client();
 
     /**
      * @brief This gets called when epoll() informs that the underlying FD has

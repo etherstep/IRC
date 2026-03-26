@@ -60,7 +60,7 @@ SRCS_MAIN	:= \
 	Logger.cpp \
 	Socket.cpp \
 	Server.cpp \
-	Connection.cpp \
+	Client.cpp \
 	Parser.cpp \
 
 

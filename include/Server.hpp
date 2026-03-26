@@ -7,13 +7,13 @@
 #include <unistd.h>
 
 #include <cstdint>
-#include <iostream>
 #include <map>
-#include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "Connection.hpp"
+#include "Client.hpp"
+#include "Command.hpp"
 #include "Socket.hpp"
 
 #define BACKLOG_SIZE 1024
@@ -34,8 +34,18 @@ class Server {
     int32_t             _nEpollFDs;
 
     // Clients
-    std::vector<Connection *>       _clients;
-    std::map<int32_t, Connection *> _connectionMap;
+    std::vector<Client *>       _clients;
+    std::map<int32_t, Client *> _ClientMap;
+
+    // functionality
+    using Function = void (Server::*)(Client *, const Command &);
+    void handlePassword(Client *client, const Command &cmd);
+    void handleNickname(Client *client, const Command &cmd);
+    void handleUserJoin(Client *client, const Command &cmd);
+    inline static const std::unordered_map<std::string, Function> _functionMap =
+        {{"PASS", &Server::handlePassword},
+         {"NICK", &Server::handleNickname},
+         {"USER", &Server::handleUserJoin}};
 
     // Security
     const std::string _pwd;
@@ -48,12 +58,12 @@ class Server {
     /**
      * @brief Initializes Server object with given <port>, <backlogSize> and
      * <pwd>. The private member struct sockadrr_in is initialized with the
-     * given port for IPv4 connections. The send buffer size and receive buffer
+     * given port for IPv4 Clients. The send buffer size and receive buffer
      * sizes are initialized according to Server.hpp macros SNDBUF_SIZE and
      * RCVBUF_SIZE.
      *
-     * @param port Port used to listen for new connections.
-     * @param backlogSize Queue size for pending connections
+     * @param port Port used to listen for new Clients.
+     * @param backlogSize Queue size for pending Clients
      * @param pwd Password used to connect to server
      */
     Server(const int32_t port, const uint32_t backlogSize,
