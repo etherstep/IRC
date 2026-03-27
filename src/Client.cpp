@@ -1,14 +1,22 @@
 #include "Client.hpp"
 
+#include <sys/socket.h>
+
 #include <cerrno>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 
 #include "Logger.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"
 
 Client::Client(Socket *soc)
-    : _socket(soc), _socketBuffer(""), _hasMessage(false), _isOpen(true) {};
+    : _socket(soc),
+      _socketBuffer(""),
+      _hasMessage(false),
+      _isOpen(true),
+      _state(State::CONNECTED) {};
 
 Client::~Client() {
   if (_socket != nullptr)
@@ -17,6 +25,16 @@ Client::~Client() {
 
 bool Client::checkBuffer() {
   return false;
+}
+
+void Client::fakeAppendToBuffer(std::string const &input) {
+  _socketBuffer.append(input);
+}
+
+void Client::eraseMessage() {
+  auto end = _socketBuffer.find("\r\n");
+  if (end != std::string::npos)
+    _socketBuffer.erase(end + 2);
 }
 
 void Client::readSocket() {
@@ -35,20 +53,14 @@ void Client::readSocket() {
   }
 }
 
-std::string Client::getMessage() {
-  if (!_hasMessage)
-    return "";
-  std::string msg;
-  auto        stoppingPoint = _socketBuffer.find("\r\n");
+std::string_view Client::extractMessage() {
+  auto stoppingPoint = _socketBuffer.find("\r\n");
   if (stoppingPoint != std::string::npos) {
-    msg = _socketBuffer.substr(0, stoppingPoint);
-  } else {
+    std::string_view msg(_socketBuffer.data(), stoppingPoint + 2);
     return msg;
+  } else {
+    return "";
   }
-  _socketBuffer.erase(_socketBuffer.begin(),
-                      _socketBuffer.begin() + stoppingPoint + 2);
-  _hasMessage = checkBuffer();
-  return msg;
 }
 
 bool Client::hasMessage() {

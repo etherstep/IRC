@@ -47,6 +47,8 @@ class Server {
          {"NICK", &Server::handleNickname},
          {"USER", &Server::handleUserJoin}};
 
+    void replyUnknown(int code);
+
     // Security
     const std::string _pwd;
 
@@ -105,6 +107,14 @@ class Server {
      * @return True or false depending on if the passwords match
      */
     bool passwordIsCorrect(const std::string &pwd);
+
+    std::string getNickname();
+
+    bool isRegistered();
+
+    bool addClient(Client *client);
+
+    void processMessage(Client *client);
 
     void run(void);
 };

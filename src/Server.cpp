@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "Logger.hpp"
+#include "Parser.hpp"
 
 Server::Server(const int32_t port, const uint32_t backlogSize,
                const std::string &pwd)
@@ -78,9 +79,18 @@ void Server::run(void) {
   }
 }
 
+bool Server::passwordIsCorrect(const std::string &pwd) {
+  return (_pwd.compare(pwd) == 0);
+}
+
 void Server::handlePassword(Client *client, const Command &cmd) {
-  (void)client, (void)cmd;
+  (void)client;
   LOG << "handling PASS command";
+  if (!cmd.params.empty() && passwordIsCorrect(cmd.params[0])) {
+    LOG << "Password matches";
+    // addClient(client);
+  } else
+    LOG << "Password doesn't match";
 }
 
 void Server::handleNickname(Client *client, const Command &cmd) {
@@ -93,9 +103,26 @@ void Server::handleUserJoin(Client *client, const Command &cmd) {
   LOG << "handling NICK command";
 }
 
+void Server::processMessage(Client *client) {
+  std::string_view msg = client->extractMessage();
+  auto             cmd = Parser::parse(msg);
+  client->eraseMessage();
+  if (cmd.has_value()) {
+    auto it = _functionMap.find(cmd->command);
+    if (it != _functionMap.end()) {
+      auto handler = it->second;
+      (this->*handler)(client, *cmd);
+    }
+  } else {
+    replyUnknown(client);
+  }
+}
+
 Server::~Server(void) {
   if (_epollFD != -1)
     close(_epollFD);
   if (epollEvents)
     delete[] epollEvents;
 }
+
+void Server::replyUnknown(int code) {}
