@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Client.hpp"
 #include "Command.hpp"
 #include "Socket.hpp"
 
@@ -95,6 +96,37 @@ class Server {
      * @brief Returns a reference to the vector of client side FD's
      */
     // std::vector<int32_t> &getClients(void) const;
+
+    /**
+     * @brief add a new client to the map
+     *
+     * @param fd
+     */
+    void add_client(int fd) {
+      _clientData.try_emplace(fd);
+    }
+
+    /**
+     * @brief remove a client from the map
+     *
+     * @param fd
+     */
+    void remove_client(int fd) {
+      _clientData.erase(fd);
+    }
+
+    /**
+     * @brief find a client by fd
+     *
+     * @param fd
+     * @return
+     */
+    Client *get_client(int fd) {
+      auto it = _clientData.find(fd);
+      if (it == _clientData.end())
+        return nullptr;
+      return &it->second;
+    }
 
     /**
      * @brief Starts the server and initializes _epollfd. Starts polling on the
