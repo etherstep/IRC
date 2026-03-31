@@ -64,6 +64,7 @@ void Server::run(void) {
           std::cerr << "Failed to accept connection to client\n";
           continue;
         }
+
         Socket *clientSocket = Socket::makeClientSocket(clientFD);
         add_client(clientFD);
         get_client(clientFD)->set_nick();
@@ -89,8 +90,41 @@ void Server::run(void) {
         }
 
         std::cout << "bytes: " << received << std::endl;
-        std::cout << "message: " << buffer;
-        send(epollEvents[i].data.fd, buffer, strlen(buffer), 0);
+        std::cout << "message: --<" << buffer << ">--" << '\n';
+        LOG << "client: " << buffer;
+
+        Client *clientData = get_client(epollEvents[i].data.fd);
+        if (!clientData)
+          continue;
+
+        const std::string &buf = buffer;
+        if (buf.find("CAP LS") != std::string::npos) {
+          std::string response = ":usva CAP * LS :none\r\n";
+          send(epollEvents[i].data.fd, response.c_str(), response.length(), 0);
+          LOG << "server: " << response;
+        }
+        if (buf.find("JOIN") != std::string::npos) {
+          // check_user_permissions_to_channel();
+          std::string response =
+              "JOIN :usva #a :topic" + clientData->get_nick() + "#a" + "\r\n";
+          send(epollEvents[i].data.fd, response.c_str(), response.length(), 0);
+          LOG << "server: " << response;
+        }
+        if (buf.find("CAP END") != std::string::npos) {
+          std::string response = "001 " + clientData->get_nick() +
+                                 " :Welcome to the IRC " +
+                                 clientData->get_nick() + "\r\n";
+          send(epollEvents[i].data.fd, response.c_str(), response.length(), 0);
+          LOG << "server: " << response;
+        }
+        if (buf.find("QUIT") != std::string::npos) {
+          std::string response = "ERROR :Lost terminal\r\n";
+          send(epollEvents[i].data.fd, response.c_str(), response.length(), 0);
+          LOG << "server: " << response;
+
+          remove_client(epollEvents[i].data.fd);
+          close(epollEvents[i].data.fd);
+        }
       }
     }
   }
