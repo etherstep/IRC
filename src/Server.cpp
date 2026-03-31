@@ -79,10 +79,15 @@ void Server::run(void) {
         }
 
       } else {
+        memset(buffer, 0, sizeof(buffer));
+
         ssize_t received =
             recv(epollEvents[i].data.fd, buffer, sizeof(buffer), MSG_DONTWAIT);
-        if (received < 0)
+        if (received <= 0) {
           std::cerr << "failed to receive\n";
+          continue;
+        }
+
         std::cout << "bytes: " << received << std::endl;
         std::cout << "message: " << buffer;
         send(epollEvents[i].data.fd, buffer, strlen(buffer), 0);
