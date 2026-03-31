@@ -74,7 +74,7 @@ void Server::run(void) {
         connectionPoll.data.fd = clientSocket->getFD();
         if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, clientSocket->getFD(),
                       &connectionPoll) < 0) {
-          std::cerr << "Failed to add connectiont to polling list\n";
+          std::cerr << "Failed to add connection to polling list\n";
           continue;
         }
 
