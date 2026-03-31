@@ -51,6 +51,13 @@ void Server::run(void) {
     std::cout << _clientData.size() << std::endl;
     _nEpollFDs = epoll_wait(_epollFD, epollEvents, _backlogSize, POLL_TIME);
     for (int i = 0; i < _nEpollFDs; ++i) {
+      // check for disconnected clients and remove them from the map
+      if (epollEvents[i].events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
+        remove_client(epollEvents[i].data.fd);
+        close(epollEvents[i].data.fd);
+        continue;
+      }
+
       if (epollEvents[i].data.fd == _listenSocket->getFD()) {
         int32_t clientFD = accept(_listenSocket->getFD(), NULL, NULL);
         if (clientFD < 0) {
@@ -63,7 +70,7 @@ void Server::run(void) {
         Client::setClientSocket(clientSocket);
 
         struct epoll_event connectionPoll{};
-        connectionPoll.events = EPOLLIN;
+        connectionPoll.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR;
         connectionPoll.data.fd = clientSocket->getFD();
         if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, clientSocket->getFD(),
                       &connectionPoll) < 0) {
