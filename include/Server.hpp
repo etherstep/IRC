@@ -7,9 +7,7 @@
 #include <unistd.h>
 
 #include <cstdint>
-#include <iostream>
-#include <map>
-#include <stdexcept>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -29,7 +27,7 @@ class Client;
 class Server {
   private:
     // Listening
-    Socket  *_listenSocket = nullptr;
+    Socket   _listenSocket;
     int32_t  _port;
     uint32_t _backlogSize;
 
@@ -42,14 +40,15 @@ class Server {
     /**
      * @brief map of Client classes, each has its own Socket class
      */
-    std::unordered_map<int, Client> _clientData;
+    std::unordered_map<int, Client> _clients;
+    std::unordered_map<int, Socket> _sockets;
 
     // functionality
-    using Function = void (Server::*)(Client *, const Command &);
-    void handlePassword(Client *client, const Command &cmd);
-    void handleNickname(Client *client, const Command &cmd);
-    void handleUserJoin(Client *client, const Command &cmd);
-    void handleCapNegotiation(Client *client, const Command &cmd);
+    using Function = void (Server::*)(Client &, const Command &);
+    void handlePassword(Client &client, const Command &cmd);
+    void handleNickname(Client &client, const Command &cmd);
+    void handleUserJoin(Client &client, const Command &cmd);
+    void handleCapNegotiation(Client &client, const Command &cmd);
     inline static const std::unordered_map<std::string, Function> _functionMap =
         {{"PASS", &Server::handlePassword},
          {"NICK", &Server::handleNickname},
@@ -57,13 +56,14 @@ class Server {
          {"CAP", &Server::handleCapNegotiation}};
 
     // formulate responses
-    void replyMessage(Client *client, int code, std::string const &msg);
-    void sendWelcomeMessages(Client *client);
+    void replyMessage(Client &client, int code, std::string const &msg);
+    void sendWelcomeMessages(Client &client);
 
     bool isNicknameInUse(std::string const &nick);
 
     // Security
     const std::string _pwd;
+    void              disconnectUser(int32_t fd);
 
   public:
     Server(void) = delete;
@@ -108,26 +108,11 @@ class Server {
     std::vector<int32_t> &getClients(void) const;
 
     /**
-     * @brief add a new client to the map
-     *
-     * @param fd
-     */
-    void addClient(int fd, Socket *soc);
-
-    /**
-     * @brief remove a client from the map
+     * @brief remove client and socket from the maps
      *
      * @param fd
      */
     void removeClient(int fd);
-
-    /**
-     * @brief find a client by fd
-     *
-     * @param fd
-     * @return
-     */
-    Client *getClient(int fd);
 
     /**
      * @brief Starts the server and initializes _epollfd. Starts polling on the
@@ -147,9 +132,7 @@ class Server {
 
     bool isRegistered();
 
-    bool addClient(Client *client);
-
-    void processMessage(Client *client);
+    void processMessage(Client &client, std::optional<Command> const &cmd);
 
     void run(void);
 };

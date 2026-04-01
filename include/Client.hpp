@@ -6,11 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Socket.hpp"
 class Client {
   public:
-    Client() = default;
-    Client(Socket *soc);
+    Client();
     Client(const Client &) = delete;
     Client &operator=(const Client &) = delete;
     Client(Client &&) = default;  // move constructor
@@ -24,8 +22,6 @@ class Client {
       REGISTERED,
     };
 
-    void readSocket();
-
     /**
      * @brief Checks if the socketBuffer contains a full message terminated by
      * "\r\n"
@@ -34,13 +30,11 @@ class Client {
     bool checkBuffer();
 
     /**
-     * @brief Extracts a message from the socketBuffer. Calls checkBuffer to
-     * update status.
+     * @brief Extracts a message from the socketBuffer.
+     *
      * @return std::string The first full message contained in the socketBuffer.
      */
-    std::string_view extractMessage();
-
-    void eraseMessage();
+    std::string extractMessage();
 
     std::string getNickname();
     void        setNickname(std::string const &nick);
@@ -65,7 +59,6 @@ class Client {
     bool isPasswordOK();
 
   private:
-    Socket     *_socket;
     std::string _responseBuffer;
     std::string _recvBuffer;
     std::string _nick;

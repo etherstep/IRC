@@ -19,27 +19,31 @@
 class Socket {
   public:
     ~Socket();
+    Socket(const Socket &other) = delete;
+    Socket &operator=(const Socket &other) = delete;
+    Socket(Socket &&other) noexcept;
+    Socket &operator=(Socket &&other) noexcept;
     /**
      * @brief creates and returns a socket to listen on the specified port
      *
      * @param int32_t port to listen on
      * @return Socket object
      */
-    static Socket *makeListeningSocket(int32_t port);
+    static Socket makeListeningSocket(int32_t port);
     /**
      * @brief Wrap a give file descriptor in a Socket object
      *
      * @param int32_t clientFD fd received from accept()
      * @return Socket object
      */
-    static Socket *makeClientSocket(int32_t clientFD);
+    static Socket makeClientSocket(int32_t clientFD);
     /**
      * @brief make the give fd nonblocking with fcntl
      *
      * @param int32_t fd
      * @return void
      */
-    void makeNonBlocking(int32_t fd);
+    void makeNonBlocking();
     /**
      * @brief return the contained fd
      *

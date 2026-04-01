@@ -11,18 +11,14 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 
-Client::Client(Socket *soc)
-    : _socket(soc),
-      _responseBuffer(""),
+Client::Client()
+    : _responseBuffer(""),
       _recvBuffer(""),
       _passwordOK(false),
       _shouldClose(false),
       _state(State::CONNECTED) {};
 
-Client::~Client() {
-  if (_socket != nullptr)
-    delete _socket;
-};
+Client::~Client() {};
 
 bool Client::checkBuffer() {
   bool response = _recvBuffer.find("\r\n") != std::string::npos;
@@ -41,12 +37,7 @@ std::string Client::getResponseBuffer() {
   return _responseBuffer;
 }
 
-void Client::eraseMessage() {
-  auto end = _recvBuffer.find("\r\n");
-  if (end != std::string::npos)
-    _recvBuffer.erase(end + 2);
-}
-
+/*
 void Client::readSocket() {
   char    buffer[RCVBUF_SIZE] = {};
   ssize_t bytesRead = _socket->receiveData(buffer, RCVBUF_SIZE);
@@ -61,11 +52,13 @@ void Client::readSocket() {
     }
   }
 }
+*/
 
-std::string_view Client::extractMessage() {
+std::string Client::extractMessage() {
   auto stoppingPoint = _recvBuffer.find("\r\n");
   if (stoppingPoint != std::string::npos) {
-    std::string_view msg(_recvBuffer.data(), stoppingPoint + 2);
+    std::string msg = _recvBuffer.substr(0, stoppingPoint + 2);
+    _recvBuffer.erase(0, stoppingPoint + 2);
     return msg;
   } else {
     return "";
