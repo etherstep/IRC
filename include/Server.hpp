@@ -51,14 +51,17 @@ class Server {
     void handleNickname(int32_t fd, const Command &cmd);
     void handleUserJoin(int32_t fd, const Command &cmd);
     void handleCapNegotiation(int32_t fd, const Command &cmd);
+    void handleQuit(int32_t fd, const Command &cmd);
     inline static const std::unordered_map<std::string, Function> _functionMap =
         {{"PASS", &Server::handlePassword},
          {"NICK", &Server::handleNickname},
          {"USER", &Server::handleUserJoin},
-         {"CAP", &Server::handleCapNegotiation}};
+         {"CAP", &Server::handleCapNegotiation},
+         {"QUIT", &Server::handleQuit}};
 
     // formulate responses
-    void replyMessage(int32_t fd, int32_t code, std::string const &msg);
+    void replyMessage(int32_t fd, std::string const &msg);
+    void replyNumeric(int32_t fd, int32_t code, std::string const &msg);
     void sendWelcomeMessages(int32_t fd);
 
     bool isNicknameInUse(std::string const &nick);

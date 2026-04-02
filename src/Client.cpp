@@ -60,7 +60,7 @@ void Client::readSocket() {
 std::string Client::extractMessage() {
   auto stoppingPoint = _recvBuffer.find("\r\n");
   if (stoppingPoint != std::string::npos) {
-    std::string msg = _recvBuffer.substr(0, stoppingPoint + 2);
+    std::string msg = _recvBuffer.substr(0, stoppingPoint);
     _recvBuffer.erase(0, stoppingPoint + 2);
     return msg;
   } else {
@@ -70,6 +70,10 @@ std::string Client::extractMessage() {
 
 bool Client::shouldClose() {
   return _shouldClose;
+}
+
+void Client::setShouldClose(bool b) {
+  _shouldClose = b;
 }
 
 bool Client::isRegistered() {

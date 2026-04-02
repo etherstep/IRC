@@ -36,6 +36,7 @@ class Client {
 
     bool isRegistered();
     bool shouldClose();
+    void setShouldClose(bool b);
 
     /**
      * @brief Extracts a message from the socketBuffer.

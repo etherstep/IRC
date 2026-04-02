@@ -62,8 +62,8 @@ void Server::start(void) {
 // FIXME: What to do if accept() fails?
 void Server::run(void) {
   while (true) {
-    LOG << "Polling for new connections. Clients: ";
-    LOG << _clients.size();
+    // LOG << "Polling for new connections. Clients: ";
+    // LOG << _clients.size();
     _nEpollFDs = epoll_wait(_epollFD, _epollEvents, _backlogSize, POLL_TIME);
     for (int i = 0; i < _nEpollFDs; ++i) {
       // check for disconnected clients and remove them from the map
@@ -142,8 +142,12 @@ void Server::run(void) {
             LOG << "Error sending data to FD " << fd;
           }
           if (client.getResponseBuffer().empty()) {
-            modifyEpoll(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR);
-          }  // all data was sent, removed EPOLLOUT
+            if (client.shouldClose()) {
+              removeClient(fd);
+            } else {  // all data was sent, removed EPOLLOUT
+              modifyEpoll(fd, EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR);
+            }
+          }
         }
       }
     }
@@ -151,10 +155,11 @@ void Server::run(void) {
 }
 
 bool Server::passwordIsCorrect(const std::string &pwd) {
-  return (_pwd.compare(pwd) == 0);
+  return (_pwd == pwd);
 }
 
 void Server::removeClient(int fd) {
+  LOG << "Removed client " << fd;
   // handle sending QUIT messages here?
   _clients.erase(fd);
   _sockets.erase(fd);
@@ -163,24 +168,25 @@ void Server::removeClient(int fd) {
 void Server::handlePassword(int32_t fd, const Command &cmd) {
   LOG << "handling PASS command";
   Client &client = _clients.at(fd);
-  if (!client.isRegistered()) {
-    replyMessage(fd, Numeric::ERR_ALREADYREGISTRED,
+  if (client.isRegistered()) {
+    replyNumeric(fd, Numeric::ERR_ALREADYREGISTRED,
                  ":Unauthorized command (already registered)");
     return;
   }
 
   if (cmd.params.empty()) {
-    replyMessage(fd, Numeric::ERR_NEEDMOREPARAMS,
+    replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS,
                  "PASS :Not enough parameters");
     return;
   }
 
-  if (passwordIsCorrect(cmd.params[0])) {
+  if (cmd.params[0] == _pwd) {
     LOG << "Password matches";
     client.setPasswordOK(true);
   } else {
-    LOG << "Password doesn't match";
-    replyMessage(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    LOG << "Password doesn't match, got '" << cmd.params[0] << "', expected '"
+        << _pwd << "'";
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
   }
 }
 
@@ -188,25 +194,25 @@ void Server::handleNickname(int32_t fd, const Command &cmd) {
   LOG << "handling NICK command";
   Client &client = _clients.at(fd);
   if (!client.isPasswordOK()) {
-    replyMessage(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
     return;
   }
 
   if (cmd.params.empty()) {
-    replyMessage(fd, Numeric::ERR_NONICKNAMEGIVEN, ":No nickname given");
+    replyNumeric(fd, Numeric::ERR_NONICKNAMEGIVEN, ":No nickname given");
     return;
   }
 
   if (client.isRegistered() ||
       client.getState() == Client::State::NICK_RECEIVED) {
-    replyMessage(fd, Numeric::ERR_ALREADYREGISTRED,
+    replyNumeric(fd, Numeric::ERR_ALREADYREGISTRED,
                  ":Unauthorized command (already registered)");
     return;
   }
 
   if (Utils::validateNickname(cmd.params[0])) {
     if (isNicknameInUse(cmd.params[0])) {
-      replyMessage(fd, Numeric::ERR_NICKNAMEINUSE, ":Nickname already in use");
+      replyNumeric(fd, Numeric::ERR_NICKNAMEINUSE, ":Nickname already in use");
       return;
     } else {
       client.setNickname(cmd.params[0]);
@@ -216,7 +222,7 @@ void Server::handleNickname(int32_t fd, const Command &cmd) {
       }
     }
   } else {
-    replyMessage(fd, Numeric::ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
+    replyNumeric(fd, Numeric::ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
     return;
   }
 }
@@ -225,26 +231,26 @@ void Server::handleUserJoin(int32_t fd, const Command &cmd) {
   LOG << "handling USER command";
   Client &client = _clients.at(fd);
   if (!client.isPasswordOK()) {
-    replyMessage(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
     return;
   }
 
   if (client.isRegistered() ||
       client.getState() == Client::State::USER_RECEIVED) {
-    replyMessage(fd, Numeric::ERR_ALREADYREGISTRED,
+    replyNumeric(fd, Numeric::ERR_ALREADYREGISTRED,
                  ":Unauthorized command (already registered)");
     return;
   }
 
   if (cmd.params.empty() || cmd.params.size() != 4) {
-    replyMessage(fd, Numeric::ERR_NEEDMOREPARAMS,
+    replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS,
                  "USER :Incorrect parameter count");
     return;
   }
 
   if (cmd.params[0].find_first_of("@!") != std::string::npos) {
-    // Could also just remove illegal chars instead of rejecting message?
-    replyMessage(fd, Numeric::ERR_NEEDMOREPARAMS,
+    // Could also just remove illegal chars instead of rejecting Numeric?
+    replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS,
                  "USER :Illegal characters in username");
     return;
   }
@@ -261,8 +267,30 @@ void Server::handleCapNegotiation(int32_t fd, const Command &cmd) {
   (void)fd, (void)cmd;
 }
 
+void Server::handleQuit(int fd, const Command &cmd) {
+  std::string quitMsg = "Client Quit";
+  if (!cmd.params.empty()) {
+    quitMsg = cmd.params[0];
+  }
+  Client     &client = _clients.at(fd);
+  std::string errorMsg = "ERROR :Closing Link: (Quit: " + quitMsg + ")\r\n";
+  replyMessage(fd, errorMsg);
+  client.setShouldClose(true);
+  LOG << "Client " << fd << " initiated QUIT sequence.";
+}
+
 void Server::sendWelcomeMessages(int32_t fd) {
-  (void)fd;
+  Client     &client = _clients.at(fd);
+  std::string clientMask =
+      client.getNickname() + "!" + client.getUsername() + "@localhost";
+  replyNumeric(fd, Numeric::RPL_WELCOME,
+               ":Welcome to IRC, " + clientMask + "!");
+  replyNumeric(fd, Numeric::RPL_YOURHOST,
+               std::string(":Your host is ") + SERVER_NAME +
+                   "running version " + GIT_HASH);
+  replyNumeric(fd, Numeric::RPL_CREATED, ":This Server was created today");
+  replyNumeric(fd, Numeric::RPL_MYINFO,
+               std::string(SERVER_NAME) + " " + GIT_HASH + " io itkol");
 }
 
 void Server::processMessage(int32_t fd, std::optional<Command> const &cmd) {
@@ -273,7 +301,7 @@ void Server::processMessage(int32_t fd, std::optional<Command> const &cmd) {
       auto handler = it->second;
       (this->*handler)(fd, *cmd);
     } else {
-      replyMessage(fd, Numeric::ERR_UNKNOWNCOMMAND,
+      replyNumeric(fd, Numeric::ERR_UNKNOWNCOMMAND,
                    cmd->command + " :command not known");
     }
   } else {
@@ -288,7 +316,13 @@ Server::~Server(void) {
     delete[] _epollEvents;
 }
 
-void Server::replyMessage(int32_t fd, int32_t code, std::string const &msg) {
+void Server::replyMessage(int32_t fd, std::string const &msg) {
+  Client &client = _clients.at(fd);
+  client.appendToResponseBuffer(msg);
+  modifyEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP | EPOLLERR);
+}
+
+void Server::replyNumeric(int32_t fd, int32_t code, std::string const &msg) {
   std::ostringstream message;
   Client            &client = _clients.at(fd);
   message << ":" << SERVER_NAME << " ";
@@ -297,14 +331,13 @@ void Server::replyMessage(int32_t fd, int32_t code, std::string const &msg) {
   if (target.empty() || !client.isRegistered())
     target = "*";
   message << target << " ";
-  message << msg << " \r\n";
-  client.appendToResponseBuffer(message.str());
-  modifyEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP | EPOLLERR);
+  message << msg << "\r\n";
+  replyMessage(fd, message.str());
 }
 
 bool Server::isNicknameInUse(std::string const &nick) {
   for (auto &[fd, client] : _clients) {
-    if (client.getNickname().compare(nick) == 0) {
+    if (client.getNickname() == nick) {
       return true;
     }
   }
