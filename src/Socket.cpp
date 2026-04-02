@@ -24,7 +24,7 @@ Socket::Socket(Socket &&other) noexcept : _fd(other._fd) {
 }
 
 Socket &Socket::operator=(Socket &&other) noexcept {
-  if (this != &other) {  // Don't steal from yourself
+  if (this != &other) {
     if (_fd >= 0) {
       close(_fd);
     }
