@@ -43,12 +43,12 @@ Channel::User &Channel::addUser(const Client &client) {
   return (*_users.back());
 }
 
-Channel::User &Channel::findUser(const std::string &target) {
+Channel::User &Channel::findUser(const std::string &nickname) {
   for (auto &e : _users) {
-    if (e->getNickName() == target)
+    if (e->getNickName() == nickname)
       return (*e);
   }
-  throw std::runtime_error("User " + target + " not found");
+  throw std::runtime_error("User " + nickname + " not found");
 }
 
 void Channel::resetFlags(void) {

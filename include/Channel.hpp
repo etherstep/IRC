@@ -49,7 +49,14 @@ class Channel {
      */
     User &addUser(const Client &client);
 
-    User &findUser(const std::string &target);
+    /**
+     * @brief Tries to find a User from Channel based on name <target>.
+     *
+     * @param nickname Nickname to look for.
+     * @return Returns a reference to the User if match found. Throws a
+     * std::runtime_error if not found.
+     */
+    User &findUser(const std::string &nickname);
 
     // INFO: Operator commands:
     /**
@@ -57,6 +64,7 @@ class Channel {
      *
      * @param user User to be kicked (removed) from the Server
      */
+    // FIXME: In definition. What else needs to be done when kicking?
     void kickUser(User &target);
 
     /**
