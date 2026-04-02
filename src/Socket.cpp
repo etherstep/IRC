@@ -25,15 +25,10 @@ Socket::Socket(Socket &&other) noexcept : _fd(other._fd) {
 
 Socket &Socket::operator=(Socket &&other) noexcept {
   if (this != &other) {  // Don't steal from yourself
-    // 1. If we already had an FD, close it so we don't leak it
     if (_fd >= 0) {
       close(_fd);
     }
-
-    // 2. Steal the new FD
     this->_fd = other._fd;
-
-    // 3. Leave the victim empty-handed
     other._fd = -1;
   }
   return *this;
