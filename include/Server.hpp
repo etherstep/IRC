@@ -7,18 +7,19 @@
 #include <unistd.h>
 
 #include <cstdint>
-#include <iostream>
-#include <stdexcept>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "Client.hpp"
 #include "Command.hpp"
 #include "Socket.hpp"
 
 #define BACKLOG_SIZE 1024
 #define RCVBUF_SIZE 65536
 #define SNDBUF_SIZE 65536
+
 #define POLL_TIME 1000
 
 class Client;
@@ -26,31 +27,48 @@ class Client;
 class Server {
   private:
     // Listening
-    Socket  *_listenSocket = nullptr;
+    Socket   _listenSocket;
     int32_t  _port;
     uint32_t _backlogSize;
 
     // Polling
     struct epoll_event  _epoll{};
-    struct epoll_event *epollEvents{};
+    struct epoll_event *_epollEvents{};
     int32_t             _epollFD = -1;
     int32_t             _nEpollFDs;
 
-    // Clients
-    std::vector<Socket *> _clients;
+    /**
+     * @brief map of Client classes, each has its own Socket class
+     */
+    std::unordered_map<int32_t, Client> _clients;
+    std::unordered_map<int32_t, Socket> _sockets;
+
+    void modifyEpoll(int32_t fd, uint32_t events);
 
     // functionality
-    using Function = void (Server::*)(Client *, const Command &);
-    void handlePassword(Client *client, const Command &cmd);
-    void handleNickname(Client *client, const Command &cmd);
-    void handleUserJoin(Client *client, const Command &cmd);
+    using Function = void (Server::*)(int32_t, const Command &);
+    void handlePassword(int32_t fd, const Command &cmd);
+    void handleNickname(int32_t fd, const Command &cmd);
+    void handleUserJoin(int32_t fd, const Command &cmd);
+    void handleCapNegotiation(int32_t fd, const Command &cmd);
+    void handleQuit(int32_t fd, const Command &cmd);
     inline static const std::unordered_map<std::string, Function> _functionMap =
         {{"PASS", &Server::handlePassword},
          {"NICK", &Server::handleNickname},
-         {"USER", &Server::handleUserJoin}};
+         {"USER", &Server::handleUserJoin},
+         {"CAP", &Server::handleCapNegotiation},
+         {"QUIT", &Server::handleQuit}};
+
+    // formulate responses
+    void replyMessage(int32_t fd, std::string const &msg);
+    void replyNumeric(int32_t fd, int32_t code, std::string const &msg);
+    void sendWelcomeMessages(int32_t fd);
+
+    bool isNicknameInUse(std::string const &nick);
 
     // Security
     const std::string _pwd;
+    void              disconnectUser(int32_t fd);
 
   public:
     Server(void) = delete;
@@ -95,6 +113,13 @@ class Server {
     std::vector<int32_t> &getClients(void) const;
 
     /**
+     * @brief remove client and socket from the maps
+     *
+     * @param fd
+     */
+    void removeClient(int fd);
+
+    /**
      * @brief Starts the server and initializes _epollfd. Starts polling on the
      * _listenfd
      */
@@ -107,6 +132,12 @@ class Server {
      * @return True or false depending on if the passwords match
      */
     bool passwordIsCorrect(const std::string &pwd);
+
+    std::string getNickname();
+
+    bool isRegistered();
+
+    void processMessage(int32_t fd, std::optional<Command> const &cmd);
 
     void run(void);
 };
