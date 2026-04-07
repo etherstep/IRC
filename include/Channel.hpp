@@ -39,6 +39,16 @@ class Channel {
     void               setTopic(const std::string &topic);
     const std::string &getTopic(void) const;
 
+    unsigned int getUserLimit(void) const;
+    // TODO: l - set / remove the user limit to channel;
+    // 4.2.9 User Limit
+    // A user limit may be set on channels by using the channel
+    // flag 'l'. When the limit is reached, servers MUST forbid their local
+    // users to join the channel. The value of the limit MUST only be made
+    // available to the channel members in the reply sent by the server to a
+    // MODE query.
+    void setUserLimit(const unsigned int limit);
+
     unsigned int getUserCount(void) const;
 
     // INFO: Utilities:
@@ -134,15 +144,6 @@ class Channel {
     // The mode 'o' is used to toggle the operator status of a channel member.
     void toggleChannelOperatorPrivilege(User &user);
 
-    // TODO: l - set / remove the user limit to channel;
-    // 4.2.9 User Limit
-    // A user limit may be set on channels by using the channel
-    // flag 'l'. When the limit is reached, servers MUST forbid their local
-    // users to join the channel. The value of the limit MUST only be made
-    // available to the channel members in the reply sent by the server to a
-    // MODE query.
-    void setUserLimit(const unsigned int limit);
-
   private:
     const Server &_server;
     std::string   _name = "";
@@ -161,14 +162,25 @@ class Channel {
         User(const Client &client);
         User(const User &other);
         User &operator&(const User &other);
-        ~User();
+        ~User() = default;
 
         // INFO: Getters and setters:
         const Client      *getClient(void) const;
         const std::string &getNickName(void) const;
 
+        /**
+         * @brief Toggles User's operator privilege on/off.
+         */
         void toggleOperatorPrivilege(void);
+
+        /**
+         * @brief Adds operator privilege to user.
+         */
         void addOperatorPrivilege(void);
+
+        /**
+         * @brief Removes user's operator privilege.
+         */
         void removeOperatorPrivilege(void);
 
       private:

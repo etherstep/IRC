@@ -1,5 +1,7 @@
 #include "Channel.hpp"
 
+#include <stdexcept>
+
 Channel::Channel(const Server &server, const Client &client,
                  const std::string &name)
     : _server(server), _name(name) {
@@ -27,6 +29,18 @@ void Channel::setTopic(const std::string &topic) {
   _topic = topic;
 }
 
+void Channel::setUserLimit(const unsigned int limit) {
+  if (_users.size() > limit)
+    // FIXME: This is here for debugging purposes. How to handle this edge case?
+    throw std::runtime_error(
+        "Channel already has more users than the limit is");
+  _userLimit = limit;
+}
+
+unsigned int Channel::getUserLimit(void) const {
+  return (_userLimit);
+}
+
 unsigned int Channel::getUserCount(void) const {
   return (_users.size());
 }
@@ -38,8 +52,10 @@ Channel::User &Channel::addUser(const Client &client) {
       // FIXME:: Inform operator that User already exists?
       return (*value);
   }
-  _users.try_emplace(client.getNickname(), std::make_unique<User>(client));
-  return (*_users.at(client.getNickname()));
+  if (_users.size() < _userLimit) {
+    _users.try_emplace(client.getNickname(), std::make_unique<User>(client));
+    return (*_users.at(client.getNickname()));
+  }
 }
 
 std::optional<std::reference_wrapper<Channel::User>> Channel::findUser(
@@ -97,8 +113,6 @@ Channel::User &Channel::User::operator&(const User &other) {
   _isOperator = other._isOperator;
   return (*this);
 }
-
-Channel::User::~User() {}
 
 const Client *Channel::User::getClient(void) const {
   return (_client);
