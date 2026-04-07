@@ -7,10 +7,12 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 #include "Client.hpp"
 #include "Logger.hpp"
@@ -357,19 +359,20 @@ void Server::disconnectUser(int32_t fd) {
 
 // INFO: Channel management:
 Channel &Server::newChannel(const Client &client, const std::string &name) {
-  _channels.emplace_back(std::make_unique<Channel>(*this, client, name));
-  return (*_channels.back());
+  _channels.try_emplace(name, std::make_unique<Channel>(*this, client, name));
+  return (*_channels.at(name));
 }
 
-std::vector<std::unique_ptr<Channel>> &Server::getChannels(void) {
+std::unordered_map<std::string, std::unique_ptr<Channel>> &Server::getChannels(
+    void) {
   return (_channels);
 }
 
 std::optional<std::reference_wrapper<Channel>> Server::findChannel(
     const std::string &channelName) const {
-  for (const auto &e : _channels) {
-    if (e->getName() == channelName)
-      return (std::ref(*e));
+  auto it = _channels.find(channelName);
+  if (it != _channels.end()) {
+    return (std::ref(*(*it).second));
   }
   return (std::nullopt);
 }

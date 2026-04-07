@@ -71,7 +71,8 @@ class Server {
     bool isNicknameInUse(std::string const &nick);
 
     // INFO: Channels:
-    std::vector<std::unique_ptr<Channel>> _channels;
+    // std::vector<std::unique_ptr<Channel>>                     _channels;
+    std::unordered_map<std::string, std::unique_ptr<Channel>> _channels;
 
     // INFO: Security
     const std::string _pwd;
@@ -158,7 +159,8 @@ class Server {
     /**
      * @brief Return a reference to the _channels vector of the Server
      */
-    std::vector<std::unique_ptr<Channel>> &getChannels(void);
+    std::unordered_map<std::string, std::unique_ptr<Channel>> &getChannels(
+        void);
 
     /**
      * @brief Tries to find a Channel with the name <channelName>

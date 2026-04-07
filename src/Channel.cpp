@@ -54,12 +54,12 @@ std::optional<std::reference_wrapper<Channel::User>> Channel::addUser(
     std::cout << "User limit: " << _userLimit << "\n";
     return (std::nullopt);
   }
-  for (const auto &[key, value] : _users) {
-    if (value->getClient() == &client) {
-      // FIXME:: Inform operator that User already exists?
-      std::cout << key + " already on the server\n";
-      return (*value);
-    }
+  auto it = _users.find(client.getNickname());
+  if (it != _users.end()) {
+    // FIXME:: Inform operator that User already exists?
+    std::cout << "Can't add "
+              << (*it).first + " because they are already on the server\n";
+    return (*it->second);
   }
   _users.try_emplace(client.getNickname(), std::make_unique<User>(client));
   return (*_users.at(client.getNickname()));
@@ -67,11 +67,11 @@ std::optional<std::reference_wrapper<Channel::User>> Channel::addUser(
 
 std::optional<std::reference_wrapper<Channel::User>> Channel::findUser(
     const std::string &nickname) {
-  for (auto &[key, value] : _users) {
-    if (value->getNickName() == nickname) {
-      return std::ref(*value);
-    }
+  auto it = _users.find(nickname);
+  if (it != _users.end()) {
+    return (std::ref(*(*it).second));
   }
+  std::cout << nickname + " not found on the server\n";
   return std::nullopt;
 }
 
@@ -102,7 +102,8 @@ void Channel::tryKickUser(const std::string nickname) {
     return;
   }
   // FIXME: Inform operator that user not found?
-  std::cout << nickname + " not found on server\n";
+  std::cout << "Can't kick "
+            << nickname + " because they are not found on the server\n";
 }
 
 void Channel::inviteUser(const std::string &nickname) {
