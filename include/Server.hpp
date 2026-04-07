@@ -28,6 +28,8 @@
 class Client;
 class Channel;
 
+using OptionalClient = std::optional<std::reference_wrapper<Client>>;
+
 class Server {
   private:
     // INFO: Listening
