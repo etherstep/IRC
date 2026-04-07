@@ -268,7 +268,9 @@ void Server::handleUserJoin(int32_t fd, const Command &cmd) {
 }
 
 void Server::handleCapNegotiation(int32_t fd, const Command &cmd) {
-  (void)fd, (void)cmd;
+  (void)cmd;
+  std::string capMsg = "CAP * LS :none\r\n";
+  replyMessage(fd, capMsg);
 }
 
 void Server::handleQuit(int fd, const Command &cmd) {
