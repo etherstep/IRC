@@ -220,7 +220,8 @@ void Server::handleNickname(int32_t fd, const Command &cmd) {
       return;
     } else {
       client.setNickname(cmd.params[0]);
-      client.setState(Client::State::NICK_RECEIVED);
+      _nickToFd.try_emplace(client.getNickname(), clientFD);
+      _ client.setState(Client::State::NICK_RECEIVED);
       if (client.isRegistered()) {
         sendWelcomeMessages(fd);
       }
