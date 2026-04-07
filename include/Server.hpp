@@ -152,6 +152,28 @@ class Server {
 
     void processMessage(int32_t fd, std::optional<Command> const &cmd);
 
+    /**
+     * @brief Tries to send a <message> to a user under <nickname>
+     *
+     * @param from Nickname of the user sending the <message>
+     * @param to Nickname of the user to send the <message> to
+     * @param message Message to send to the <user>
+     */
+    void sendMessageToUser(const std::string &from, const std::string &to,
+                           const std::string &message);
+
+    /**
+     * @brief Tries to send a <message> with a <code> to a user under <nickname>
+     *
+     * @param from Nickname of the user sending the <message>
+     * @param to Nickname of the user to send the <message> to
+     * @param code Numeric reply value to pass to the <user> with the <message>
+     * @param message Message to send to the <user>
+     */
+    void sendMessageWithCodeToUser(const std::string &from,
+                                   const std::string &to, const int32_t code,
+                                   const std::string &message);
+
     void run(void);
 
     // INFO: Channel management:
