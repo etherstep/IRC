@@ -366,11 +366,13 @@ Channel &Server::findChannel(const std::string &target) const {
       return (*e);
   }
   throw std::runtime_error("Channel with name " + target + " not found");
-  void Server::modifyEpoll(int32_t fd, uint32_t events) {
-    struct epoll_event epoll{};
-    epoll.events = events;
-    epoll.data.fd = fd;
-    if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &epoll) < 0) {
-      LOG << "Failed to modify polling list for " << fd;
-    }
+}
+
+void Server::modifyEpoll(int32_t fd, uint32_t events) {
+  struct epoll_event epoll{};
+  epoll.events = events;
+  epoll.data.fd = fd;
+  if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &epoll) < 0) {
+    LOG << "Failed to modify polling list for " << fd;
   }
+}

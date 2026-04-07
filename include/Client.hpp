@@ -43,10 +43,12 @@ class Client {
 
     bool isRegistered();
     bool shouldClose();
+    void setShouldClose(bool b);
 
     void         appendToRecvBuffer(std::string const &input);
     void         appendToResponseBuffer(std::string const &msg);
     std::string &getResponseBuffer();
+    void         removeFromResponse(size_t bytes);
 
     void setPasswordOK(bool b);
     bool isPasswordOK();
