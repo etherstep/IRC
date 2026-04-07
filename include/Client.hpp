@@ -23,19 +23,6 @@ class Client {
     };
 
     /**
-     * @brief Checks if the socketBuffer contains a full message terminated by
-     * "\r\n"
-     * @return bool Is there a full message in buffer
-     */
-    bool checkBuffer();
-    // void set_nick() {
-    //   struct passwd *pw = getpwuid(getuid());
-    //   if (pw) {
-    //     _nickname = pw->pw_name;
-    //   }
-    // }
-
-    /**
      * @brief Extracts a message from the socketBuffer.
      *
      * @return std::string The first full message contained in the socketBuffer.
