@@ -16,7 +16,10 @@ Client::Client()
       _recvBuffer(""),
       _passwordOK(false),
       _shouldClose(false),
-      _state(State::CONNECTED) {};
+      _state(State::CONNECTED) {
+  struct passwd *pw = getpwuid(getuid());
+  _nick = pw->pw_name;
+};
 
 Client::~Client() {};
 

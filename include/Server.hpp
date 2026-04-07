@@ -44,8 +44,9 @@ class Server {
     /**
      * @brief map of Client classes, each has its own Socket class
      */
-    std::unordered_map<int32_t, Client> _clients;
-    std::unordered_map<int32_t, Socket> _sockets;
+    std::unordered_map<int32_t, Client>      _clients;
+    std::unordered_map<std::string, int32_t> _nickToFd;
+    std::unordered_map<int32_t, Socket>      _sockets;
 
     void modifyEpoll(int32_t fd, uint32_t events);
 
@@ -120,6 +121,12 @@ class Server {
      */
     std::vector<int32_t> &getClients(void) const;
 
+    OptionalClient findClientByName(const std::string &name) {
+      auto it = _nickToFd.find(name);
+      if (it == _nickToFd.end())
+        return std::nullopt;
+      return std::ref(_clients.at(it->second));
+    }
     /**
      * @brief remove client and socket from the maps
      *

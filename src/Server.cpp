@@ -88,6 +88,8 @@ void Server::run(void) {
             LOG << "New connection accepted on FD: " << clientFD;
             _sockets.try_emplace(clientFD, Socket::makeClientSocket(clientFD));
             _clients.try_emplace(clientFD, Client());
+            _nickToFd.try_emplace(_clients.at(clientFD).getNickname(),
+                                  clientFD);
 
             struct epoll_event connectionPoll{};
             connectionPoll.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR;
