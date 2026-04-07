@@ -396,6 +396,32 @@ void Server::handleCapNegotiation(int32_t fd, const Command &cmd) {
     replyMessage(fd, capMsg);
 }
 
+// INFO: PRIVMSG
+void Server::handlePrivMsg(int32_t fd, const Command &cmd) {
+  (void)fd;
+
+  for (auto it : _nickToFd) {
+    std::cout << "nicknames: " << it.first << '\n';
+  }
+  OptionalClient target = findClientByName(cmd.params.front());
+  if (!target) {
+    std::cout << "client not found using " << cmd.params.front() << '\n';
+    return;
+  }
+  std::string msg;
+  for (auto &it : cmd.params) {
+    msg += it;
+  }
+  std::string nname(target->get().getNickname());
+  std::cout << nname << '\n';
+  try {
+    replyMessage(_nickToFd.at(nname), "PRIVMSG " + nname + " :" + msg + "\r\n");
+
+  } catch (...) {
+    std::cout << "ERROR" << '\n';
+  }
+}
+
 void Server::handleQuit(int fd, const Command &cmd) {
   std::string quitMsg = "Client Quit";
   if (!cmd.params.empty()) {
