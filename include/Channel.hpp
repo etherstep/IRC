@@ -5,7 +5,6 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "Client.hpp"
 #include "Server.hpp"
@@ -195,6 +194,8 @@ class Channel {
       LIMITED_USER_COUNT = 1 << 3,
     };
 };
+
+using OptionalUser = std::optional<std::reference_wrapper<Channel::User>>;
 
 // WARN: Not in subject:
 // enum class ChannelFlag{

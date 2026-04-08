@@ -1,8 +1,6 @@
 #include "Channel.hpp"
 
-#include <optional>
-#include <stdexcept>
-
+#include "Logger.hpp"
 #include "Utils.hpp"
 
 Channel::Channel(Server &server, const Client &client, const std::string &name)
@@ -49,18 +47,27 @@ unsigned int Channel::getUserCount(void) const {
 // INFO: Utilities:
 std::optional<std::reference_wrapper<Channel::User>> Channel::addUser(
     const Client &client) {
+  // FIXME: Need to implement password checks!
   if (_users.size() >= _userLimit) {
-    // FIXME:: Inform operator that server is full?
     _server.sendMessageWithCodeToUser(
         client.getNickname(), client.getNickname(), Numeric::ERR_CHANNELISFULL,
-        ":Cannot join channel (+l)");
+        this->getName() + " :Cannot join channel (+l)");
+    LOG << client.getNickname() + " can't join channel " + this->getName() +
+               " because it's full\n";
+    // FIXME:: Print statements for debugging only
     std::cout << "Users: " << _users.size() << "\n";
     std::cout << "User limit: " << _userLimit << "\n";
     return (std::nullopt);
   }
   auto it = _users.find(client.getNickname());
   if (it != _users.end()) {
-    // FIXME:: Inform operator that User already exists?
+    _server.sendMessageWithCodeToUser(
+        client.getNickname(), client.getNickname(), Numeric::ERR_USERONCHANNEL,
+        client.getNickname() + " " + this->getName() +
+            ": is already on channel");
+    LOG << client.getNickname() + " is already on channel " + this->getName() +
+               "\n";
+    // FIXME:: Print statements for debugging only
     std::cout << "Can't add "
               << (*it).first + " because they are already on the server\n";
     return (*it->second);
@@ -75,6 +82,7 @@ std::optional<std::reference_wrapper<Channel::User>> Channel::findUser(
   if (it != _users.end()) {
     return (std::ref(*(*it).second));
   }
+  // FIXME:: Print statements for debugging only
   std::cout << nickname + " not found on the server\n";
   return std::nullopt;
 }
@@ -91,14 +99,6 @@ bool Channel::isFlagOn(const ChannelFlag flag) {
   return (_channelFlags & static_cast<uint16_t>(flag));
 }
 
-// INFO: Operator commands:
-void Channel::kickUser(Channel::User &target) {
-  // FIXME: What else needs to be done when kicking? Notify Client or Server?
-  auto it = _users.find(target.getNickName());
-  if (it != _users.end())
-    _users.erase(it);
-}
-
 void Channel::tryKickUser(const std::string nickname) {
   std::optional<std::reference_wrapper<User>> target = findUser(nickname);
   if (target) {
@@ -108,6 +108,13 @@ void Channel::tryKickUser(const std::string nickname) {
   // FIXME: Inform operator that user not found?
   std::cout << "Can't kick "
             << nickname + " because they are not found on the server\n";
+}
+
+// INFO: Operator commands:
+void Channel::kickUser(Channel::User &target) {
+  auto it = _users.find(target.getNickName());
+  if (it != _users.end())
+    _users.erase(it);
 }
 
 void Channel::inviteUser(const std::string &nickname) {

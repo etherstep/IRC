@@ -29,6 +29,7 @@ class Client;
 class Channel;
 
 using OptionalClient = std::optional<std::reference_wrapper<Client>>;
+using OptionalChannel = std::optional<std::reference_wrapper<Channel>>;
 
 class Server {
   private:
@@ -55,12 +56,16 @@ class Server {
     // functionality
     using Function = void (Server::*)(int32_t, const Command &);
     void handlePassword(int32_t fd, const Command &cmd);
+    void handleJoin(int32_t fd, const Command &cmd);
+    void handleKick(int32_t fd, const Command &cmd);
     void handleNickname(int32_t fd, const Command &cmd);
     void handleUserJoin(int32_t fd, const Command &cmd);
     void handleCapNegotiation(int32_t fd, const Command &cmd);
     void handleQuit(int32_t fd, const Command &cmd);
     inline static const std::unordered_map<std::string, Function> _functionMap =
         {{"PASS", &Server::handlePassword},
+         {"JOIN", &Server::handleJoin},
+         {"KICK", &Server::handleKick},
          {"NICK", &Server::handleNickname},
          {"USER", &Server::handleUserJoin},
          {"CAP", &Server::handleCapNegotiation},
