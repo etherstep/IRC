@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 #include <cerrno>
+#include <cstddef>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -13,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Client.hpp"
 #include "Logger.hpp"
@@ -189,6 +191,68 @@ void Server::handlePassword(int32_t fd, const Command &cmd) {
     LOG << "Password doesn't match, got '" << cmd.params[0] << "', expected '"
         << _pwd << "'";
     replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+  }
+}
+
+void Server::handleKick(int32_t fd, const Command &cmd) {
+  LOG << "handling KICK command";
+  Client &client = _clients.at(fd);
+  if (!client.isPasswordOK()) {
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    return;
+  }
+  if (cmd.params.size() < 2) {
+    replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS, ":Not enough parameters");
+    return;
+  }
+
+  //  FIXME: vv Throw here only for development/debugging purposes vv
+  if (cmd.params.size() > 3) {
+    throw std::runtime_error("Too many params for KICK command");
+  }
+  // FIXME: ^^ Throw here only for development/debugging purposes ^^
+
+  OptionalChannel          channel;
+  std::vector<std::string> users;
+  std::string              comment;
+  for (size_t i = 0; i < cmd.params.size(); ++i) {
+    switch (i) {
+      case 0: {
+        channel = findChannel(cmd.params[i]);
+        if (!channel.has_value()) {
+          replyNumeric(fd, Numeric::ERR_NOSUCHCHANNEL, ":No such channel");
+          return;
+        }
+        break;
+      }
+      case 1: {
+        std::string user;
+        while (std::getline(std::stringstream(cmd.params[i]), user, ','))
+          users.push_back(user);
+        break;
+      }
+      case 2: {
+        comment = cmd.params[i];
+        break;
+      }
+    }
+  }
+  for (size_t i = 0; i < users.size(); ++i) {
+    OptionalClient clientToKick = findClientByName(users[i]);
+    if (!clientToKick.has_value()) {
+      replyNumeric(fd, Numeric::ERR_NOSUCHNICK, ":No such nick");
+      continue;
+    }
+    OptionalUser user = channel->get().findUser(users[i]);
+    if (!user.has_value()) {
+      replyNumeric(fd, Numeric::ERR_NOSUCHNICK,
+                   ":No such nick " + users[i] + " on channel " +
+                       channel->get().getName());
+      continue;
+    }
+    int32_t fdToKick = _nickToFd.at(users[i]);
+    replyMessage(fdToKick, comment);
+    channel->get().kickUser(user->get());
   }
 }
 

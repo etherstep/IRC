@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <string>
 
 namespace Utils {
@@ -20,6 +21,7 @@ constexpr int32_t ERR_UNKNOWNCOMMAND = 421;
 constexpr int32_t ERR_NONICKNAMEGIVEN = 431;
 constexpr int32_t ERR_ERRONEUSNICKNAME = 432;
 constexpr int32_t ERR_NICKNAMEINUSE = 433;
+constexpr int32_t ERR_USERONCHANNEL = 443;
 constexpr int32_t ERR_NOTREGISTERED = 451;
 constexpr int32_t ERR_NEEDMOREPARAMS = 461;
 constexpr int32_t ERR_ALREADYREGISTRED = 462;
