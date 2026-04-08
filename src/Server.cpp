@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -20,12 +21,6 @@
 #include "Logger.hpp"
 #include "Parser.hpp"
 #include "Utils.hpp"
-
-#define SERVER_NAME "usvaIRC"
-#include <cstring>
-
-#include "Client.hpp"
-#include "Logger.hpp"
 
 Server::Server(const int32_t port, const uint32_t backlogSize,
                const std::string &pwd)
@@ -396,9 +391,9 @@ void Server::handleUserJoin(int32_t fd, const Command &cmd) {
 }
 
 void Server::handleCapNegotiation(int32_t fd, const Command &cmd) {
-  (void)cmd;
   std::string capMsg = "CAP * LS :none\r\n";
-  replyMessage(fd, capMsg);
+  if (cmd.params.size() >= 1 && cmd.params[0] != "END")
+    replyMessage(fd, capMsg);
 }
 
 void Server::handleQuit(int fd, const Command &cmd) {
@@ -429,18 +424,18 @@ void Server::sendWelcomeMessages(int32_t fd) {
 
 void Server::processMessage(int32_t fd, std::optional<Command> const &cmd) {
   Client &client = _clients.at(fd);
+  if (!client.isRegistered() && !Utils::isHandshakeCmd(cmd->command)) {
+    replyNumeric(fd, Numeric::ERR_NOTREGISTERED, ":Client not registered");
+    return;
+  }
   if (cmd.has_value()) {
     auto it = _functionMap.find(cmd->command);
     if (it != _functionMap.end()) {
       auto handler = it->second;
       (this->*handler)(fd, *cmd);
     } else {
-      if (!client.isRegistered()) {
-        replyNumeric(fd, Numeric::ERR_NOTREGISTERED, ":Client not registered");
-      } else {
-        replyNumeric(fd, Numeric::ERR_UNKNOWNCOMMAND,
-                     cmd->command + " :command not known");
-      }
+      replyNumeric(fd, Numeric::ERR_UNKNOWNCOMMAND,
+                   cmd->command + " :command not known");
     }
   } else {
     LOG << "Malformed message received from " << client.getNickname();
