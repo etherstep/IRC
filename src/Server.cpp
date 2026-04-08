@@ -300,18 +300,18 @@ void Server::sendWelcomeMessages(int32_t fd) {
 
 void Server::processMessage(int32_t fd, std::optional<Command> const &cmd) {
   Client &client = _clients.at(fd);
+  if (!client.isRegistered() && !Utils::isHandshakeCmd(cmd->command)) {
+    replyNumeric(fd, Numeric::ERR_NOTREGISTERED, ":Client not registered");
+    return;
+  }
   if (cmd.has_value()) {
     auto it = _functionMap.find(cmd->command);
     if (it != _functionMap.end()) {
       auto handler = it->second;
       (this->*handler)(fd, *cmd);
     } else {
-      if (!client.isRegistered()) {
-        replyNumeric(fd, Numeric::ERR_NOTREGISTERED, ":Client not registered");
-      } else {
-        replyNumeric(fd, Numeric::ERR_UNKNOWNCOMMAND,
-                     cmd->command + " :command not known");
-      }
+      replyNumeric(fd, Numeric::ERR_UNKNOWNCOMMAND,
+                   cmd->command + " :command not known");
     }
   } else {
     LOG << "Malformed message received from " << client.getNickname();

@@ -1,5 +1,8 @@
 #include "Utils.hpp"
 
+#include <algorithm>
+#include <vector>
+
 bool Utils::validateNickname(const std::string &nick) {
   const std::string forbidden = " ,*?!@";
   const std::string forbiddenFirst = "$:";
@@ -14,4 +17,11 @@ bool Utils::validateNickname(const std::string &nick) {
   if (nick.find_first_of(forbidden) != std::string::npos)
     return false;
   return true;
+}
+
+bool Utils::isHandshakeCmd(const std::string &cmd) {
+  static const std::vector<std::string> handshakeCmds = {"CAP", "PASS", "NICK",
+                                                         "USER"};
+  return (std::find(handshakeCmds.begin(), handshakeCmds.end(), cmd) !=
+          handshakeCmds.end());
 }

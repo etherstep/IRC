@@ -3,7 +3,8 @@
 
 namespace Utils {
 bool validateNickname(const std::string &nick);
-}
+bool isHandshakeCmd(const std::string &cmd);
+}  // namespace Utils
 
 namespace Numeric {
 // handshake
