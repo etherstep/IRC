@@ -426,8 +426,8 @@ void Server::handlePrivMsg(int32_t fd, const Command &cmd) {
                                           " PRIVMSG " + nname + " :" + message +
                                           "\r\n");
 
-  } catch (...) {
-    std::cout << "ERROR" << '\n';
+  } catch (const std::exception &e) {
+    std::cout << e.what() << '\n';
   }
 }
 
