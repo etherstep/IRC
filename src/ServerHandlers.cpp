@@ -42,7 +42,15 @@ void Server::handleKick(int32_t fd, const Command &cmd) {
 // INFO: JOIN
 void Server::handleJoin(int32_t fd, const Command &cmd) {
   LOG << "handling JOIN command";
-  Client &client = _clients.at(fd);
+  Client         &client = _clients.at(fd);
+  OptionalChannel channel = findChannel(cmd.params[0]);
+  if (!channel) {
+    std::cout << "channel not found, creating new channel " << cmd.params[0]
+              << '\n';
+    channel = newChannel(_clients.find(fd)->second, cmd.params[0]);
+    _channels.try_emplace(cmd.params[0], &channel->get());
+  }
+  channel->get().addUser(client);
   if (!client.isPasswordOK()) {
     replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
     return;
