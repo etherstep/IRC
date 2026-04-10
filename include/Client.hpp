@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+#define MAX_RECV_BUFFER 8192
+#define MAX_MESSAGE_LEN 510
+
 class Client {
   public:
     Client();

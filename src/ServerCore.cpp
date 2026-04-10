@@ -120,9 +120,14 @@ void Server::run(void) {
             clientIt->second.appendToRecvBuffer(buffer);
             std::string command;
             while (!(command = clientIt->second.extractMessage()).empty()) {
-              auto cmd = Parser::parse(command);
-              LOG << "Received full command: " << command;
-              processMessage(clientIt->first, cmd);
+              if (command.length() > MAX_MESSAGE_LEN) {
+                replyNumeric(_epollEvents[i].data.fd, Numeric::ERR_INPUTTOOLONG,
+                             ":Input too long");
+              } else {
+                auto cmd = Parser::parse(command);
+                LOG << "Received full command: " << command;
+                processMessage(clientIt->first, cmd);
+              }
             }
           } else {
             std::cerr << "Got rogue network packet" << std::endl;
@@ -155,6 +160,9 @@ void Server::run(void) {
 }
 
 void Server::processMessage(int32_t fd, std::optional<Command> const &cmd) {
+  if (!cmd.has_value()) {
+    return;
+  }
   Client &client = _clients.at(fd);
   if (!client.isRegistered() && !Utils::isHandshakeCmd(cmd->command)) {
     replyNumeric(fd, Numeric::ERR_NOTREGISTERED, ":Client not registered");
