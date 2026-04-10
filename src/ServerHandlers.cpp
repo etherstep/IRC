@@ -40,7 +40,7 @@ void Server::handlePrivMsg(int32_t fd, const Command &cmd) {
                        sender->get().getUsername() + "@" +
                        sender->get().getHostname();
   // INFO: channel
-  if (cmd.params[0][0] == '#') {
+  if (cmd.params[0][0] == '#' || cmd.params[0][0] == '&') {
     OptionalChannel channel = findChannel(cmd.params[0]);
     if (!channel) {
       channel = newChannel(*sender, cmd.params[0]);
