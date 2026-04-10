@@ -3,17 +3,16 @@
 #include <sys/socket.h>
 
 #include <cerrno>
-#include <stdexcept>
 #include <string>
-#include <string_view>
 
 #include "Logger.hpp"
 #include "Server.hpp"
-#include "Socket.hpp"
+#include "irc.hpp"
 
 Client::Client()
     : _responseBuffer(""),
       _recvBuffer(""),
+      _nick(""),
       _passwordOK(false),
       _shouldClose(false),
       _state(State::CONNECTED) {};
@@ -30,6 +29,12 @@ void Client::removeFromResponse(size_t bytes) {
 
 void Client::appendToRecvBuffer(std::string const &input) {
   _recvBuffer.append(input);
+  if (_recvBuffer.length() > MAX_RECV_BUFFER &&
+      _recvBuffer.find("\r\n") == std::string::npos) {
+    _recvBuffer.clear();
+    LOG << "Client '" << _nick
+        << "' exceeded receive buffer size, erased buffer";
+  }
 }
 
 void Client::appendToResponseBuffer(std::string const &msg) {

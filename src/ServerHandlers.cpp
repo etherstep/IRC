@@ -1,6 +1,7 @@
 #include <assert.h>
 
-#include <ranges>
+#include <iostream>
+#include <span>
 
 #include "Client.hpp"
 #include "Logger.hpp"
@@ -77,11 +78,6 @@ void Server::handlePrivMsg(int32_t fd, const Command &cmd) {
 // INFO: KICK
 void Server::handleKick(int32_t fd, const Command &cmd) {
   LOG << "handling KICK command";
-  Client &client = _clients.at(fd);
-  if (!client.isPasswordOK()) {
-    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
-    return;
-  }
   if (cmd.params.size() < 2) {
     replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS, ":Not enough parameters");
     return;
@@ -100,10 +96,6 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
     _channels.try_emplace(cmd.params[0], &channel->get());
   }
   channel->get().addUser(client);
-  if (!client.isPasswordOK()) {
-    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
-    return;
-  }
   if (cmd.params.size() < 1) {
     replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS, ":Not enough parameters");
     return;
