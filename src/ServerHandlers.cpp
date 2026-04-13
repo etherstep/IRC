@@ -278,9 +278,12 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
       continue;
     } else {
       LOG << channelNames[i] + " found. " + clientToAdd.getNickname() +
-                 " joining the joining";
+                 " joining the channel";
       // FIXME: Need to implement password checks!
+      std::string channelMessage = ":" + clientToAdd.getNickname() + " JOIN " +
+                                   channel->get().getName() + "\r\n";
       channel->get().addUser(clientToAdd);
+      channel->get().messageAllUsersOnChannel(channelMessage);
     }
   }
 }
