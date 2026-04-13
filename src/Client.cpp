@@ -21,6 +21,8 @@ Client::Client(struct sockaddr_in *addr)
   char ip[INET_ADDRSTRLEN] = {};
   if (inet_ntop(AF_INET, &(addr->sin_addr), ip, sizeof(ip))) {
     _hostname = ip;
+  } else {
+    _hostname = "unknown";
   }
 };
 
