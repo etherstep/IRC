@@ -266,10 +266,10 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
     LOG << clientToAdd.getNickname() + " trying to join channel " +
                channelNames[i];
     if (!channel.has_value()) {
-      if (cmd.params[0][0] != '#' && cmd.params[0][0] != '&') {
+      if (channelNames[i][0] != '#' && channelNames[i][0] != '&') {
         LOG << channelNames[i] + " bad channel mask";
-        replyNumeric(fd, Numeric::ERR_BADCHANMASK, ":" + cmd.params[0]);
-        return;
+        replyNumeric(fd, Numeric::ERR_BADCHANMASK, ":" + channelNames[i]);
+        continue;
       }
       LOG << channelNames[i] + " not found. Creating channel " +
                  channelNames[i];
