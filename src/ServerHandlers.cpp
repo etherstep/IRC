@@ -274,13 +274,19 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
       }
       LOG << channelNames[i] + " not found. Creating channel " +
                  channelNames[i];
-      newChannel(clientToAdd, channelNames[i]);
+      Channel    &createdChannel = newChannel(clientToAdd, channelNames[i]);
+      std::string channelMessage = ":" + clientToAdd.getNickname() + " JOIN " +
+                                   createdChannel.getName() + "\r\n";
+      createdChannel.messageAllUsersOnChannel(channelMessage);
       continue;
     } else {
       LOG << channelNames[i] + " found. " + clientToAdd.getNickname() +
-                 " joining the joining";
+                 " joining the channel";
       // FIXME: Need to implement password checks!
+      std::string channelMessage = ":" + clientToAdd.getNickname() + " JOIN " +
+                                   channel->get().getName() + "\r\n";
       channel->get().addUser(clientToAdd);
+      channel->get().messageAllUsersOnChannel(channelMessage);
     }
   }
 }
