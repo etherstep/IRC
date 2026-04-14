@@ -101,27 +101,37 @@ void Server::handleTopic(int32_t fd, const Command &cmd) {
     replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS, ":Not enough parameters");
     return;
   }
+
   OptionalChannel channel = findChannel(cmd.params[0]);
   if (!channel) {
     replyNumeric(fd, Numeric::ERR_NOSUCHCHANNEL, ":No such channel");
     return;
   }
+
   const std::string &nick = _clients.at(fd).getNickname();
-  if (!channel->get().findUser(nick)) {
+  OptionalUser       user = channel->get().findUser(nick);
+  if (!user) {
     replyNumeric(fd, Numeric::ERR_NOTONCHANNEL, ":You're not on that channel");
     return;
   }
+
   const std::string &topic = channel->get().getTopic();
   if (cmd.params.size() < 2) {
-    if (topic == "")
+    if (topic.empty())
       replyNumeric(fd, Numeric::RPL_NOTOPIC, ":No topic is set");
-    else {
+    else
       replyNumeric(fd, Numeric::RPL_TOPIC, ":" + topic);
-      // FIXME: RPL::TOPICWHOTIME should also be sent after RPL_TOPIC
-    }
     return;
   }
-  // FIXME: Protected topic?
+
+  if (channel->get().isFlagOn(Channel::ChannelFlag::TOPIC_SET_BY_CHANOP_ONLY)) {
+    if (!user.isOperator()) {
+      replyNumeric(fd, Numeric::ERR_CHANOPRIVSNEEDED,
+                   ":You're not channel operator");
+      return;
+    }
+  }
+
   const std::string &new_topic = cmd.params[1];
   channel->get().setTopic(new_topic);
   OptionalClient client = findClientByName(nick);
