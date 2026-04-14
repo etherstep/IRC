@@ -12,7 +12,7 @@ void Server::sendWelcomeMessages(int32_t fd) {
   std::string clientMask = client.getNickname() + "!" + client.getUsername() +
                            "@" + client.getHostname();
   replyNumeric(fd, Numeric::RPL_WELCOME,
-               +":Welcome to the Internet Relay Network " + clientMask);
+               ":Welcome to the Internet Relay Network " + clientMask);
   replyNumeric(fd, Numeric::RPL_YOURHOST,
                std::string(":Your host is ") + SERVER_NAME +
                    " running version " + GIT_HASH);
