@@ -13,6 +13,8 @@ constexpr int32_t RPL_WELCOME = 1;
 constexpr int32_t RPL_YOURHOST = 2;
 constexpr int32_t RPL_CREATED = 3;
 constexpr int32_t RPL_MYINFO = 4;
+// mode replies
+constexpr int32_t RPL_UMODEIS = 221;
 // errors
 constexpr int32_t ERR_NOSUCHNICK = 401;
 constexpr int32_t ERR_NOSUCHCHANNEL = 403;
