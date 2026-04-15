@@ -179,6 +179,8 @@ void Server::handleInvite(int32_t fd, const Command &cmd) {
   }
 
   std::string channelName = channel->get().getName();
+  std::string messageToSender = targetNick + " :" + channelName;
+  replyNumeric(fd, Numeric::RPL_INVITING, messageToSender);
 
   sendMessageToUser(senderNick, targetNick, messageToTarget);
   return;
