@@ -9,8 +9,7 @@ bool Server::passwordIsCorrect(const std::string &pwd) {
 
 void Server::sendWelcomeMessages(int32_t fd) {
   Client     &client = _clients.at(fd);
-  std::string clientMask = client.getNickname() + "!" + client.getUsername() +
-                           "@" + client.getHostname();
+  std::string clientMask = client.generatePrefix().substr(1);
   replyNumeric(fd, Numeric::RPL_WELCOME,
                ":Welcome to the Internet Relay Network " + clientMask);
   replyNumeric(fd, Numeric::RPL_YOURHOST,
