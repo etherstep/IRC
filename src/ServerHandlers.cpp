@@ -177,19 +177,9 @@ void Server::handleInvite(int32_t fd, const Command &cmd) {
                      " :is already on channel");
     return;
   }
-  // FIXME: 19:33 -!- No such nick: No such nick/channel
 
-  //  antti67 has been invited to #kannu by usva69
-  //  OptionalClient senderClient = findClientByName(senderNick);
   std::string channelName = channel->get().getName();
-  // std::string    prefix = senderClient->get().generatePrefix();
-  // std::string messageToSender = prefix + " " + targetNick + " " +
-  // channelName;
-  //
-  // replyNumeric(fd, Numeric::RPL_INVITING, messageToSender);
 
-  std::string messageToTarget =
-      ":" + senderNick + " INVITE " + targetNick + " :" + channelName;
   sendMessageToUser(senderNick, targetNick, messageToTarget);
   return;
 }
