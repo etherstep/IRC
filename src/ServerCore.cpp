@@ -216,7 +216,6 @@ void Server::initializeSignalHandling(void) {
   sigset_t         signalsToBlock;
   std::memset(&sa, 0, sizeof(sa));
   sigfillset(&signalsToBlock);
-  sigdelset(&signalsToBlock, SIGINT);
   sa.sa_handler = &signalHandler;
   sa.sa_mask = signalsToBlock;
   if (sigaction(SIGINT, &sa, NULL) == -1) {
