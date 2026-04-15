@@ -170,21 +170,20 @@ void Server::handleInvite(int32_t fd, const Command &cmd) {
     }
   }
 
-  std::string targetNick = cmd.params[0];
+  const std::string &targetNick = cmd.params[0];
+  const std::string &channelName = channel->get().getName();
   if (channel->get().findUser(targetNick)) {
     replyNumeric(fd, Numeric::ERR_USERONCHANNEL,
-                 targetNick + " " + channel->get().getName() +
-                     " :is already on channel");
+                 targetNick + " " + channelName + " :is already on channel");
     return;
   }
 
-  std::string channelName = channel->get().getName();
-  std::string messageToSender = targetNick + " :" + channelName;
+  const std::string &messageToSender = targetNick + " :" + channelName;
   replyNumeric(fd, Numeric::RPL_INVITING, messageToSender);
 
-  OptionalClient senderClient = findClientByName(senderNick);
-  std::string    prefix = senderClient->get().generatePrefix();
-  std::string    messageToTarget =
+  OptionalClient     senderClient = findClientByName(senderNick);
+  const std::string &prefix = senderClient->get().generatePrefix();
+  const std::string &messageToTarget =
       prefix + " INVITE " + targetNick + " :" + channelName;
   sendMessageToUser(senderNick, targetNick, messageToTarget);
   sendMessageToUser(senderNick, senderNick, messageToTarget);
