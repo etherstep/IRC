@@ -187,6 +187,7 @@ void Server::handleInvite(int32_t fd, const Command &cmd) {
   std::string    messageToTarget =
       prefix + " INVITE " + targetNick + " :" + channelName;
   sendMessageToUser(senderNick, targetNick, messageToTarget);
+  sendMessageToUser(senderNick, senderNick, messageToTarget);
   return;
 }
 
