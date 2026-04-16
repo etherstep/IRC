@@ -9,30 +9,52 @@
 int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
   bool               onOff = false;
   size_t             index = 2;
+  std::string        onBuffer = "";
+  std::string        offBuffer = "";
+  std::string        newModesBuffer = "";
   const std::string &modestring = cmd.params[1];
   for (auto &c : modestring) {
     switch (c) {
       case '+':
         onOff = true;
+        onBuffer += '+';
         continue;
 
       case '-':
         onOff = false;
+        offBuffer += '-';
         continue;
 
       case 'i':
+        if (!onOff)
+          offBuffer += 'i';
+        else
+          onBuffer += 'i';
         channel.setMode(Channel::ChannelMode::INVITE_ONLY, onOff);
         continue;
 
       case 't':
+        if (!onOff)
+          offBuffer += 't';
+        else
+          onBuffer += 't';
         channel.setMode(Channel::ChannelMode::TOPIC_SET_BY_CHANOP_ONLY, onOff);
         continue;
 
       case 'k': {
+        if (!onOff) {
+          if (channel.isModeOn(Channel::ChannelMode::KEY_PROTECTED))
+            offBuffer += 'k';
+          channel.setMode(Channel::ChannelMode::KEY_PROTECTED, false);
+          channel.setKey("");
+          continue;
+        }
         if (index >= cmd.params.size())
           continue;
-        channel.setMode(Channel::ChannelMode::KEY_PROTECTED, onOff);
+        channel.setMode(Channel::ChannelMode::KEY_PROTECTED, true);
         channel.setKey(cmd.params[index]);
+        if (onOff)
+          onBuffer += 'k';
         index++;
         continue;
       }
@@ -45,12 +67,17 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
         if (!user)
           continue;
         user->get().toggleOperatorPrivilege();
+        if (!onOff)
+          offBuffer += 'o';
+        else
+          onBuffer += 'o';
         index++;
         continue;
       }
 
       case 'l': {
         if (!onOff) {
+          offBuffer += 'l';
           channel.setUserLimit(UINT32_MAX);
           channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, false);
           continue;
@@ -64,6 +91,7 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
               static_cast<uint32_t>(std::stoul(cmd.params[index])));
           channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, true);
         } catch (...) {}
+        onBuffer += 'l';
         index++;
         continue;
       }
@@ -72,6 +100,11 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
         return index;
     }
   }
+  onBuffer.erase(std::unique(onBuffer.begin(), onBuffer.end()), onBuffer.end());
+  offBuffer.erase(std::unique(offBuffer.begin(), offBuffer.end()),
+                  offBuffer.end());
+  newModesBuffer += onBuffer + offBuffer;
+  channel.setNewModes(newModesBuffer);
   return -1;
 }
 
