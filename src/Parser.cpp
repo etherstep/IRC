@@ -9,6 +9,48 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 #include "Utils.hpp"
+
+int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
+  bool onOff = false;
+  int  it = 2;
+  for (auto &c : cmd.params[1]) {
+    switch (c) {
+      case '+':
+        onOff = true;
+        continue;
+      case '-':
+        onOff = false;
+        continue;
+      case 'i':
+        channel.setMode(Channel::ChannelMode::INVITE_ONLY, onOff);
+        continue;
+      case 't':
+        channel.setMode(Channel::ChannelMode::TOPIC_SET_BY_CHANOP_ONLY, onOff);
+        continue;
+      case 'k':
+        channel.setMode(Channel::ChannelMode::KEY_PROTECTED, onOff);
+        channel.setKey(cmd.params[it]);
+        it++;
+        continue;
+      case 'o':
+        channel.findUser(cmd.params[it])->get().toggleOperatorPrivilege();
+        it++;
+        continue;
+      case 'l':
+        channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, onOff);
+        try {
+          channel.setUserLimit(
+              static_cast<uint32_t>(std::stoul(cmd.params[it])));
+        } catch (...) {}
+        it++;
+        continue;
+      default:
+        return it;
+    }
+  }
+  return -1;
+}
+
 std::optional<Command> Parser::parse(std::string message) {
   Command cmd;
 
