@@ -23,6 +23,6 @@ namespace Parser {
  * no command was able to be found in the string
  */
 
-std::string           &channelModeParse(std::string message);
+int32_t                channelModeParse(const Command &cmd, Channel &channel);
 std::optional<Command> parse(std::string message);
 }  // namespace Parser
