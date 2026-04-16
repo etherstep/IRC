@@ -438,11 +438,13 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
     replyNumeric(fd, Numeric::ERR_NOSUCHCHANNEL, ":No such channel");
     return;
   }
+
+  const std::string &channelName = channel->get().getName();
   if (cmd.params.size() == 1) {
-    // FIXME: Format message correctly.
-    replyNumeric(fd, Numeric::RPL_CHANNELMODEIS, "");
-    // FIXME: Server's SHOULD return RPL_CREATIONTIME after RPL_CHANNELMODEIS
-    replyNumeric(fd, Numeric::RPL_CREATIONTIME, "");
+    replyNumeric(fd, Numeric::RPL_CHANNELMODEIS,
+                 channelName + " " + channel->get().getModes());
+    replyNumeric(fd, Numeric::RPL_CREATIONTIME,
+                 channelName + " " + channel->get().getUNIXTimeCreated());
     return;
   } else {
     OptionalUser user = channel->get().findUser(nickname);
