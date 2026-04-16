@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <chrono>
+#include <cstdlib>
 #include <string>
 
 #include "Channel.hpp"
@@ -19,6 +21,7 @@ Client::Client(struct sockaddr_in *addr)
       _nick(""),
       _passwordOK(false),
       _shouldClose(false),
+      _waitingForPong(false),
       _state(State::CONNECTED) {
   char ip[INET_ADDRSTRLEN] = {};
   if (inet_ntop(AF_INET, &(addr->sin_addr), ip, sizeof(ip))) {
@@ -53,8 +56,13 @@ void Client::appendToResponseBuffer(std::string const &msg) {
   if (_responseBuffer.length() > MAX_RECV_BUFFER) {
     _responseBuffer.clear();
     LOG << "Client '" << _nick
-        << "' exceeded receive buffer size, erased buffer";
+        << "' exceeded response buffer size, erased buffer";
+    // FIXME: kick client at this point?
   }
+}
+
+void Client::clearResponseBuffer() {
+  _responseBuffer.clear();
 }
 
 std::string &Client::getResponseBuffer() {
@@ -81,6 +89,7 @@ void Client::readSocket() {
 std::string Client::extractMessage() {
   auto stoppingPoint = _recvBuffer.find("\r\n");
   if (stoppingPoint != std::string::npos) {
+    _lastMsgRecv = std::chrono::system_clock::now();
     std::string msg = _recvBuffer.substr(0, stoppingPoint);
     _recvBuffer.erase(0, stoppingPoint + 2);
     return msg;
@@ -175,4 +184,32 @@ void Client::removeChannel(const std::string &channelToRemove) {
 const std::string Client::generatePrefix() const {
   return (":" + this->getNickname() + "!" + this->getUsername() + "@" +
           this->getHostname());
+}
+
+TimeStamp Client::getLastPingRecv() {
+  return _lastPingRecv;
+}
+
+TimeStamp Client::getLastPingSent() {
+  return _lastPingSent;
+}
+
+TimeStamp Client::getLastMsgRecv() {
+  return _lastPingSent;
+}
+
+void Client::setPingRecv(TimeStamp t) {
+  _lastPingRecv = t;
+}
+
+void Client::setPingSent(TimeStamp t) {
+  _lastPingSent = t;
+}
+
+void Client::setLastMsgRecv(TimeStamp t) {
+  _lastMsgRecv = t;
+}
+
+bool Client::isWaitingForPong() {
+  return _waitingForPong;
 }

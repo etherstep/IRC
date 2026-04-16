@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <span>
@@ -355,13 +356,16 @@ void Server::handleQuit(int fd, const Command &cmd) {
     quitMsg = cmd.params[0];
   }
   Client     &client = _clients.at(fd);
-  std::string errorMsg = "ERROR :Closing Link: (Quit: " + quitMsg + ")";
+  std::string errorMsg =
+      "ERROR :Closing Link: " + client.getHostname() + " (" + quitMsg + ")";
   replyMessage(fd, errorMsg);
-  client.setShouldClose(true);
+  startDisconnect(fd, quitMsg, true);
   LOG << "Client " << fd << " initiated QUIT sequence.";
 }
 
 void Server::handlePing(int32_t fd, const Command &cmd) {
+  Client &client = _clients.at(fd);
+  client.setPingRecv(std::chrono::system_clock::now());
   std::string msg = ":" SERVER_NAME " PONG " SERVER_NAME;
   if (!cmd.params.empty()) {
     msg += " " + cmd.params[0];

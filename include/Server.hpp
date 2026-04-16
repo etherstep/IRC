@@ -228,4 +228,9 @@ class Server {
      * @brief removes a channel from server is it's user count is 0.
      */
     void removeEmptyChannels(void);
+
+    /**
+     * @brief starts the process of removing a client from the server.
+     */
+    void startDisconnect(int32_t fd, std::string reason, bool socketExists);
 };
