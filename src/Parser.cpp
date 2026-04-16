@@ -33,8 +33,6 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
         channel.setMode(Channel::ChannelMode::TOPIC_SET_BY_CHANOP_ONLY, onOff);
         continue;
       case 'k':
-        if (index > modestring.size())
-          continue;
         if (index >= cmd.params.size())
           continue;
         channel.setMode(Channel::ChannelMode::KEY_PROTECTED, onOff);
@@ -42,28 +40,25 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
         index++;
         continue;
       case 'o':
-        if (index > modestring.size())
-          continue;
         if (index >= cmd.params.size())
           continue;
         channel.findUser(cmd.params[index])->get().toggleOperatorPrivilege();
         index++;
         continue;
       case 'l':
-        if (index > modestring.size() && onOff == true)
-          continue;
-        if (index >= cmd.params.size())
-          continue;
-        if (onOff == false) {
+        if (!onOff) {
           channel.setUserLimit(UINT32_MAX);
+          channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, false);
           continue;
         }
+        if (index >= cmd.params.size())
+          continue;
         if (!std::ranges::all_of(cmd.params[index], ::isdigit))
           continue;
-        channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, onOff);
         try {
           channel.setUserLimit(
               static_cast<uint32_t>(std::stoul(cmd.params[index])));
+          channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, onOff);
         } catch (...) {}
         index++;
         continue;
