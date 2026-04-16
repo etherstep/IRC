@@ -35,7 +35,7 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
       case 'k':
         if (index > modestring.size())
           continue;
-        if (!std::ranges::all_of(cmd.params[index], ::isdigit))
+        if (index >= cmd.params.size())
           continue;
         channel.setMode(Channel::ChannelMode::KEY_PROTECTED, onOff);
         channel.setKey(cmd.params[index]);
@@ -50,11 +50,13 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
       case 'l':
         if (index > modestring.size() && onOff == true)
           continue;
-        channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, onOff);
         if (onOff == false) {
           channel.setUserLimit(UINT32_MAX);
           continue;
         }
+        if (!std::ranges::all_of(cmd.params[index], ::isdigit))
+          continue;
+        channel.setMode(Channel::ChannelMode::LIMITED_USER_COUNT, onOff);
         try {
           channel.setUserLimit(
               static_cast<uint32_t>(std::stoul(cmd.params[index])));
