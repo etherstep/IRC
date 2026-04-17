@@ -42,6 +42,12 @@ void Channel::setTopic(const std::string &topic) {
   _topic = topic;
 }
 
+std::string &Channel::getNewModes() {
+  return _newModes;
+}
+
+void Channel::setNewModes(const std::string &modes) {
+  _newModes = modes;
 const std::string &Channel::getUNIXTimeCreated(void) const {
   return (_timeCreated);
 }

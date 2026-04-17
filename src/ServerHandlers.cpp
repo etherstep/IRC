@@ -10,6 +10,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Logger.hpp"
+#include "Parser.hpp"
 #include "Server.hpp"
 #include "Utils.hpp"
 
@@ -425,7 +426,7 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
   std::string nickname = client.getNickname();
 
   //  FIXME: vv Throw here only for development/debugging purposes vv
-  if (cmd.params.size() > 3) {
+  if (cmd.params.size() > 15) {
     throw std::runtime_error("Too many params for MODE command");
   }
   // FIXME: ^^ Throw here only for development/debugging purposes ^^
@@ -442,12 +443,13 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
     replyNumeric(fd, Numeric::ERR_NOSUCHCHANNEL, ":No such channel");
     return;
   }
+
+  const std::string &channelName = channel->get().getName();
   if (cmd.params.size() == 1) {
     replyNumeric(fd, Numeric::RPL_CHANNELMODEIS,
-                 channel->get().getName() + " " + channel->get().getModes());
-    replyNumeric(
-        fd, Numeric::RPL_CREATIONTIME,
-        channel->get().getName() + " " + channel->get().getUNIXTimeCreated());
+                 channelName + " " + channel->get().getModes());
+    replyNumeric(fd, Numeric::RPL_CREATIONTIME,
+                 channelName + " " + channel->get().getUNIXTimeCreated());
     return;
   } else {
     OptionalUser user = channel->get().findUser(nickname);
@@ -456,8 +458,15 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
                    ":You're not channel operator");
       return;
     }
-    // FIXME: Parse mode message and apply to channel!
-    // Iterate through the parsed modes and use:
-    // channel->get().setMode(const ChannelMode mode, const bool status)
+    if (int32_t i = Parser::channelModeParse(cmd, channel->get()) != -1) {
+      replyNumeric(fd, Numeric::ERR_UNKNOWNMODE,
+                   std::string(1, cmd.params[1][i]));
+      return;
+    }
+    std::string        newModes = channel->get().getNewModes();
+    const std::string &prefix = client.generatePrefix();
+    const std::string &modeMessage =
+        prefix + " MODE " + channelName + " :" + newModes;
+    channel->get().messageAllUsersOnChannel(modeMessage);
   }
 }

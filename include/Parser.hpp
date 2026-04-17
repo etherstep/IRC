@@ -2,6 +2,7 @@
 #include <optional>
 #include <string>
 
+#include "Channel.hpp"
 #include "Command.hpp"
 
 /**
@@ -21,5 +22,7 @@ namespace Parser {
  * legal-looking IRC command (<:prefix> COMMAND <params>...), or std::nullopt if
  * no command was able to be found in the string
  */
+
+int32_t                channelModeParse(const Command &cmd, Channel &channel);
 std::optional<Command> parse(std::string message);
 }  // namespace Parser
