@@ -298,19 +298,12 @@ class Channel {
         const std::string &getNickName(void) const;
 
         /**
-         * @brief Toggles User's operator privilege on/off.
+         * @brief Sets User's operator privilege according to the <status>
+         *
+         * @param status Boolean value based on which to set the User's operator
+         * privilege.
          */
-        void toggleOperatorPrivilege(void);
-
-        /**
-         * @brief Adds operator privilege to user.
-         */
-        void addOperatorPrivilege(void);
-
-        /**
-         * @brief Removes user's operator privilege.
-         */
-        void removeOperatorPrivilege(void);
+        void setOperatorPrivilege(const bool status);
 
         /**
          * @brief Returns a boolean telling if the User is operator on the

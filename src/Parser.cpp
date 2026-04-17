@@ -64,7 +64,7 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
         if (!user)
           break;
 
-        user->get().toggleOperatorPrivilege();
+        user->get().setOperatorPrivilege(onOff);
         append('o');
         break;
       }
