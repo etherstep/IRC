@@ -73,10 +73,7 @@ std::string Channel::getModes(const std::string &nickname) const {
       if (user->get().isOperator()) {
         modeArgs += " " + _key;
       } else {
-        modeArgs += " ";
-        for (size_t i = 0; i < _key.length(); ++i) {
-          modeArgs += "*";
-        }
+        modeArgs += " " + std::string(_key.length(), '*');
       }
     }
   }
