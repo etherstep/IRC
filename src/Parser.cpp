@@ -67,8 +67,7 @@ void Parser::channelModeParse(const Command &cmd, Channel &channel,
         if (!user) {
           server.sendMessageWithCodeToUser(authorNick, authorNick,
                                            Numeric::ERR_NOSUCHNICK,
-                                           ":" + cmd.params[--index]);
-          index++;
+                                           ":" + cmd.params[index - 1]);
           continue;
         }
 
