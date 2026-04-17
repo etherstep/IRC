@@ -104,6 +104,8 @@ int32_t Parser::channelModeParse(const Command &cmd, Channel &channel) {
 
   auto dedupe = [](std::string &s) {
     s.erase(std::unique(s.begin(), s.end()), s.end());
+    if ((s[0] == '+' || s[0] == '-') && !s[1])
+      s.clear();
   };
 
   dedupe(onBuffer);
