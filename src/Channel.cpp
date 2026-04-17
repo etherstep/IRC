@@ -54,21 +54,31 @@ const std::string &Channel::getUNIXTimeCreated(void) const {
   return (_timeCreated);
 }
 
-std::string Channel::getModes(void) const {
-  std::string modestring = "+";
-  std::string modeArgs{};
+std::string Channel::getModes(const std::string &nickname) const {
+  OptionalUser user = findUser(nickname);
+  std::string  modestring = "+";
+  std::string  modeArgs{};
   if (isModeOn(ChannelMode::LIMITED_USER_COUNT)) {
-    modestring += "l";
-    modeArgs += " " + std::to_string(_userLimit);
+    modestring.append("l");
+    if (user) {
+      modeArgs.append(" ").append(std::to_string(_userLimit));
+    }
   }
   if (isModeOn(ChannelMode::INVITE_ONLY)) {
-    modestring += "i";
+    modestring.append("i");
   }
   if (isModeOn(ChannelMode::KEY_PROTECTED)) {
-    modestring += "k";
+    modestring.append("k");
+    if (user) {
+      if (user->get().isOperator()) {
+        modeArgs.append(" ").append(_key);
+      } else {
+        modeArgs.append(" ").append(_key.length(), '*');
+      }
+    }
   }
   if (isModeOn(ChannelMode::TOPIC_SET_BY_CHANOP_ONLY)) {
-    modestring += "t";
+    modestring.append("t");
   }
   return (modestring + modeArgs);
 }
@@ -134,7 +144,7 @@ std::optional<std::reference_wrapper<Channel::User>> Channel::addUser(
 }
 
 std::optional<std::reference_wrapper<Channel::User>> Channel::findUser(
-    const std::string &nickname) {
+    const std::string &nickname) const {
   auto it = _users.find(nickname);
   if (it != _users.end()) {
     return (std::ref(*(*it).second));
