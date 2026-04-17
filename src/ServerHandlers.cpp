@@ -270,7 +270,7 @@ void Server::handlePart(int32_t fd, const Command &cmd) {
     }
     channel->get().messageAllUsersOnChannel(partMessage);
     client->get().removeChannel(channelName);
-    channel->get().tryKickUser(client->get().getNickname());
+    channel->get().removeUser(client->get().getNickname());
   }
 }
 
@@ -339,7 +339,7 @@ void Server::handleKick(int32_t fd, const Command &cmd) {
     }
     channel->get().messageAllUsersOnChannel(kickMessage);
     clientToKick->get().removeChannel(channelName);
-    channel->get().tryKickUser(users[i]);
+    channel->get().removeUser(users[i]);
   }
 }
 

@@ -240,20 +240,13 @@ bool Channel::isModeOn(const ChannelMode flag) const {
   return (_channelModes & static_cast<uint16_t>(flag));
 }
 
-// INFO: Operator commands:
-void Channel::tryKickUser(const std::string nickname) {
+void Channel::removeUser(const std::string nickname) {
   auto it = _users.find(nickname);
   if (it != _users.end()) {
-    kickUser(it);
-    return;
-  }
-}
-
-void Channel::kickUser(
-    std::unordered_map<std::string, std::unique_ptr<User>>::iterator it) {
-  _users.erase(it);
-  if (getUserCount() == 0) {
-    _server.removeEmptyChannel(_name);
+    _users.erase(it);
+    if (_users.size() == 0) {
+      _server.removeEmptyChannel(_name);
+    }
   }
 }
 

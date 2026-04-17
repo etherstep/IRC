@@ -258,7 +258,7 @@ void Server::startDisconnect(int32_t fd, std::string reason,
     OptionalChannel chan = findChannel(channelName);
     if (chan.has_value()) {
       chan->get().messageAllUsersOnChannel(removed.getNickname(), quitMsg);
-      chan->get().tryKickUser(removed.getNickname());
+      chan->get().removeUser(removed.getNickname());
     }
   }
   _nickToFd.erase(removed.getNickname());

@@ -116,11 +116,11 @@ class Channel {
     // INFO: Operator commands:
 
     /**
-     * @brief Attempts to kick (remove) the given User from the Server.
+     * @brief Attempts to remove the given User from the Server.
      *
-     * @param nickname User to be kicked (removed) from the Server
+     * @param nickname User to be removed from the Server
      */
-    void tryKickUser(const std::string nickname);
+    void removeUser(const std::string nickname);
 
     /**
      * @brief Sets a channel <mode> on or off base on the given <status>
@@ -243,14 +243,6 @@ class Channel {
      */
     std::optional<std::reference_wrapper<Channel::User>> addUser(
         const Client &client);
-
-    /**
-     * @brief Attempts to kick (remove) the given User from the Server.
-     *
-     * @param user User to be kicked (removed) from the Server
-     */
-    void kickUser(
-        std::unordered_map<std::string, std::unique_ptr<User>>::iterator it);
 
     /**
      *  @brief Creates and returns a string of users on a channel with a prefix
