@@ -3,6 +3,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -106,6 +107,7 @@ class Client {
     std::string              _hostname;
     bool                     _passwordOK;
     bool                     _shouldClose;
+    bool                     _waitingForPong;
     State                    _state;
     TimeStamp                _lastMsgRecv;
     TimeStamp                _lastPingSent;
