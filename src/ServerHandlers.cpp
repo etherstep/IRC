@@ -447,7 +447,7 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
   const std::string &channelName = channel->get().getName();
   if (cmd.params.size() == 1) {
     replyNumeric(fd, Numeric::RPL_CHANNELMODEIS,
-                 channelName + " " + channel->get().getModes());
+                 channelName + " " + channel->get().getModes(nickname));
     replyNumeric(fd, Numeric::RPL_CREATIONTIME,
                  channelName + " " + channel->get().getUNIXTimeCreated());
     return;

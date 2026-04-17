@@ -45,7 +45,14 @@ class Channel {
      * @brief Returns a string containing the active modes and their
      * corresponding mode arguments.
      */
-    std::string getModes(void) const;
+    /**
+     * @brief Returns a string containing the active modes and their
+     * corresponding mode arguments depending on nickname's User status on the
+     * channel. If not a user, get the modes but not arguments.
+     *
+     * @param nickname Nickname of the mode request sender.
+     */
+    std::string getModes(const std::string &nickname) const;
 
     /**
      * @brief Returns a UNIX time stamp of the time when channel was created.
@@ -104,7 +111,7 @@ class Channel {
      * @param nickname Nickname to look for in the _users
      */
     std::optional<std::reference_wrapper<User>> findUser(
-        const std::string &nickname);
+        const std::string &nickname) const;
 
     // INFO: Operator commands:
     /**
