@@ -1,6 +1,7 @@
+#include <iostream>
+
 #include "Logger.hpp"
 #include "Server.hpp"
-#include "irc.hpp"
 
 #ifndef GIT_HASH
 #define GIT_HASH "unknown_build"
