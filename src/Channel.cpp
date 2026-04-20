@@ -156,12 +156,16 @@ bool Channel::tryAddInvite(const User &senderUser, const std::string &invited) {
       return (false);
     }
   }
-  auto it = std::ranges::find(_inviteList, invited);
-  if (it != _inviteList.end()) {
+  auto userIt = _users.find(invited);
+  if (userIt != _users.end()) {
     _server.sendMessageWithCodeToUser(
         sender, sender, Numeric::ERR_USERONCHANNEL,
-        sender + " " + this->getName() + " :is already on channel");
+        invited + " " + this->getName() + " :is already on channel");
     return (false);
+  }
+  auto inviteIt = std::ranges::find(_inviteList, invited);
+  if (inviteIt != _inviteList.end()) {
+    return (true);
   } else {
     _inviteList.push_back(invited);
     return (true);
