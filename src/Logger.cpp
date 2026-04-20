@@ -51,8 +51,8 @@ void Logger::setLogFile(const std::string &filename) {
     std::cerr << "Failed to open log file: " << filename << std::endl;
   } else {
     _logPath = filename;
+    _hasSpace = hasDiskSpace(filename);
   }
-  _hasSpace = hasDiskSpace(filename);
 }
 
 bool Logger::hasDiskSpace(const std::string &line) {
