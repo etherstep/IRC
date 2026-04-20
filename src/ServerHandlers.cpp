@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <span>
@@ -444,6 +445,12 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
     return;
   }
   if (cmd.params[0][0] != '#' && cmd.params[0][0] != '&') {
+    auto targetFd = _nickToFd.find(cmd.params[0]);
+    if (targetFd != _nickToFd.end())
+      return;
+    std::string errStr =
+        cmd.params[0] + " " + client.getNickname() + " :No such nick/channel";
+    replyNumeric(fd, Numeric::ERR_NOSUCHCHANNEL, errStr);
     return;
   }
   OptionalChannel channel = findChannel(cmd.params[0]);
