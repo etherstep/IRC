@@ -16,7 +16,7 @@
 Channel::Channel(Server &server, const Client &client, const std::string &name)
     : _server(server), _name(name) {
   auto creator = std::make_unique<User>(client);
-  creator->addOperatorPrivilege();
+  creator->setOperatorPrivilege(true);
   _users.try_emplace(client.getNickname(), std::move(creator));
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();
@@ -346,16 +346,8 @@ const std::string &Channel::User::getNickName(void) const {
   return (_client->getNickname());
 }
 
-void Channel::User::toggleOperatorPrivilege(void) {
-  _isOperator = !_isOperator;
-}
-
-void Channel::User::addOperatorPrivilege(void) {
-  _isOperator = true;
-}
-
-void Channel::User::removeOperatorPrivilege(void) {
-  _isOperator = false;
+void Channel::User::setOperatorPrivilege(const bool status) {
+  _isOperator = status;
 }
 
 bool Channel::User::isOperator(void) const {

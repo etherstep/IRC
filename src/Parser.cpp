@@ -72,9 +72,9 @@ void Parser::channelModeParse(const Command &cmd, Channel &channel,
           continue;
         }
         if (onOff)
-          user->get().addOperatorPrivilege();
+          user->get().setOperatorPrivilege(onOff);
         else
-          user->get().removeOperatorPrivilege();
+          user->get().setOperatorPrivilege(onOff);
         argBuffer.append(cmd.params[index++] + " ");
         append('o');
         continue;
