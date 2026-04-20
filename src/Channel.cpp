@@ -16,7 +16,7 @@
 Channel::Channel(Server &server, const Client &client, const std::string &name)
     : _server(server), _name(name) {
   auto creator = std::make_unique<User>(client);
-  creator->addOperatorPrivilege();
+  creator->setOperatorPrivilege(true);
   _users.try_emplace(client.getNickname(), std::move(creator));
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();
@@ -156,12 +156,16 @@ bool Channel::tryAddInvite(const User &senderUser, const std::string &invited) {
       return (false);
     }
   }
-  auto it = std::ranges::find(_inviteList, invited);
-  if (it != _inviteList.end()) {
+  auto userIt = _users.find(invited);
+  if (userIt != _users.end()) {
     _server.sendMessageWithCodeToUser(
         sender, sender, Numeric::ERR_USERONCHANNEL,
-        sender + " " + this->getName() + " :is already on channel");
+        invited + " " + this->getName() + " :is already on channel");
     return (false);
+  }
+  auto inviteIt = std::ranges::find(_inviteList, invited);
+  if (inviteIt != _inviteList.end()) {
+    return (true);
   } else {
     _inviteList.push_back(invited);
     return (true);
@@ -342,16 +346,8 @@ const std::string &Channel::User::getNickName(void) const {
   return (_client->getNickname());
 }
 
-void Channel::User::toggleOperatorPrivilege(void) {
-  _isOperator = !_isOperator;
-}
-
-void Channel::User::addOperatorPrivilege(void) {
-  _isOperator = true;
-}
-
-void Channel::User::removeOperatorPrivilege(void) {
-  _isOperator = false;
+void Channel::User::setOperatorPrivilege(const bool status) {
+  _isOperator = status;
 }
 
 bool Channel::User::isOperator(void) const {
