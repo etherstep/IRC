@@ -1,4 +1,8 @@
+#include <sys/epoll.h>
+
+#include <exception>
 #include <iostream>
+#include <string>
 
 #include "Logger.hpp"
 #include "Server.hpp"

@@ -1,7 +1,6 @@
 #pragma once
-#include <netinet/in.h>
-#include <pwd.h>
-#include <unistd.h>
+
+#include <stddef.h>
 
 #include <chrono>
 #include <string>
