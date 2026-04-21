@@ -38,6 +38,10 @@ Server::Server(const int32_t port, const uint32_t backlogSize,
       _backlogSize(backlogSize),
       _lastPingCheck(std::chrono::steady_clock::now()),
       _pwd(pwd) {
+  if (_pwd.empty()) {
+    LOG << "Warning: empty password";
+    _noPassword = true;
+  }
   int sendBufSize = SNDBUF_SIZE;
   int receiveBufSize = RCVBUF_SIZE;
 
@@ -84,8 +88,8 @@ void Server::run(void) {
         while (true) {
           struct sockaddr_in client_addr;
           socklen_t          addr_len = sizeof(client_addr);
-          int32_t            clientFD = accept(_listenSocket.getFD(),
-                                               (struct sockaddr *)&client_addr, &addr_len);
+          int32_t clientFD = accept(_listenSocket.getFD(),
+                                    (struct sockaddr *)&client_addr, &addr_len);
           if (clientFD == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
               break;
