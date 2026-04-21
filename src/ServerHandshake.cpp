@@ -78,44 +78,6 @@ void Server::handleUserJoin(int32_t fd, const Command &cmd) {
   }
 }
 
-void Server::handleNickname(int32_t fd, const Command &cmd) {
-  LOG << "handling NICK command";
-  Client &client = _clients.at(fd);
-  if (!client.isPasswordOK()) {
-    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
-    return;
-  }
-
-  if (cmd.params.empty()) {
-    replyNumeric(fd, Numeric::ERR_NONICKNAMEGIVEN, ":No nickname given");
-    return;
-  }
-
-  if (client.isRegistered() ||
-      client.getState() == Client::State::NICK_RECEIVED) {
-    replyNumeric(fd, Numeric::ERR_ALREADYREGISTRED,
-                 ":Unauthorized command (already registered)");
-    return;
-  }
-
-  if (Utils::validateNickname(cmd.params[0])) {
-    if (isNicknameInUse(cmd.params[0])) {
-      replyNumeric(fd, Numeric::ERR_NICKNAMEINUSE, ":Nickname already in use");
-      return;
-    } else {
-      client.setNickname(cmd.params[0]);
-      _nickToFd.try_emplace(client.getNickname(), fd);
-      client.setState(Client::State::NICK_RECEIVED);
-      if (client.isRegistered()) {
-        sendWelcomeMessages(fd);
-      }
-    }
-  } else {
-    replyNumeric(fd, Numeric::ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
-    return;
-  }
-}
-
 void Server::handlePassword(int32_t fd, const Command &cmd) {
   LOG << "handling PASS command";
   Client &client = _clients.at(fd);

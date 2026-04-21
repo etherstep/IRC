@@ -495,3 +495,45 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
     channel->get().messageAllUsersOnChannel(modeMessage);
   }
 }
+
+void Server::handleNickname(int32_t fd, const Command &cmd) {
+  LOG << "handling NICK command";
+  Client &client = _clients.at(fd);
+  if (!client.isPasswordOK()) {
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    return;
+  }
+
+  if (cmd.params.empty()) {
+    replyNumeric(fd, Numeric::ERR_NONICKNAMEGIVEN, ":No nickname given");
+    return;
+  }
+  std::string   nickname = cmd.params[0];
+  Client::State state = client.getState();
+  if (Utils::validateNickname(nickname)) {
+    if (isNicknameInUse(nickname)) {
+      replyNumeric(fd, Numeric::ERR_NICKNAMEINUSE, nickname);
+      if (client.getState() == Client::State::REGISTERED) {
+        std::cout << "here" << std::endl;
+        return;
+      } else {
+        while (isNicknameInUse(nickname)) {
+          nickname.append("_");
+        }
+        client.setNickname(cmd.params[0]);
+        replyMessage(fd, client.generatePrefix() + " NICK " + nickname);
+        return;
+      }
+    }
+    client.setNickname(nickname);
+    _nickToFd.try_emplace(client.getNickname(), fd);
+    client.setState(Client::State::NICK_RECEIVED);
+    replyMessage(fd, client.generatePrefix() + " NICK " + cmd.params[0]);
+    if (client.isRegistered() && state != client.getState()) {
+      sendWelcomeMessages(fd);
+    }
+  } else {
+    replyNumeric(fd, Numeric::ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
+    return;
+  }
+}
