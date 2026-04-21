@@ -151,7 +151,7 @@ void Server::handleTopic(int32_t fd, const Command &cmd) {
   OptionalClient client = findClientByName(nick);
   std::string    prefix = client->get().generatePrefix();
   std::string    topicMessage = prefix + " " + cmd.command + " " +
-                                channel->get().getName() + " :" + new_topic;
+                             channel->get().getName() + " :" + new_topic;
   channel->get().messageAllUsersOnChannel(topicMessage);
   return;
 }
@@ -384,10 +384,6 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
       }
     }
   }
-  if (channelKeys.size() > 0 && channelNames.size() != channelKeys.size()) {
-    replyNumeric(fd, Numeric::ERR_NEEDMOREPARAMS, ":Not enough parameters");
-    return;
-  }
   Client &clientToAdd = _clients.at(fd);
   for (size_t i = 0; i < channelNames.size(); ++i) {
     OptionalChannel channel = findChannel(channelNames[i]);
@@ -405,7 +401,9 @@ void Server::handleJoin(int32_t fd, const Command &cmd) {
       continue;
     } else {
       LOG << clientToAdd.getNickname() + " joining channel " + channelNames[i];
-      std::string  key = channelKeys.size() > 0 ? channelKeys[i] : "";
+      std::string  key = channelKeys.size() > 0 && i <= channelKeys.size()
+                             ? channelKeys[i]
+                             : "";
       OptionalUser user = channel->get().tryAddUser(clientToAdd, key);
       if (user.has_value()) {
         channel->get().messageNewUserJoining(clientToAdd);
