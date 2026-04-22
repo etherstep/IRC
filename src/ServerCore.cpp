@@ -127,7 +127,7 @@ void Server::run(void) {
           auto clientIt = _clients.find(_epollEvents[i].data.fd);
           if (clientIt != _clients.end()) {
             clientIt->second.appendToRecvBuffer(buffer);
-            std::string command;
+            std::string command{};
             while (!(command = clientIt->second.extractMessage()).empty()) {
               if (command.length() > MAX_MESSAGE_LEN) {
                 replyNumeric(_epollEvents[i].data.fd, Numeric::ERR_INPUTTOOLONG,
@@ -253,10 +253,10 @@ void Server::startDisconnect(int32_t fd, std::string reason,
   Client                  &removed = _clients.at(fd);
   std::vector<std::string> channels = removed.getChannels();
   std::string quitMsg = removed.generatePrefix() + " QUIT :Quit :" + reason;
+  messageAllUniqueContacts(fd, quitMsg);
   for (auto channelName : channels) {
     OptionalChannel chan = findChannel(channelName);
     if (chan.has_value()) {
-      chan->get().messageAllUsersOnChannel(removed.getNickname(), quitMsg);
       chan->get().removeUser(removed.getNickname());
     }
   }

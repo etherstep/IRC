@@ -230,7 +230,21 @@ class Channel {
      */
     void messageNewUserJoining(Client &clientToAdd);
 
+    /**
+     * @brief Checks if the given key matches channel's key.
+     *
+     * @param key Key to check against channel's key.
+     * @return Boolean value based on if keys match.
+     */
     bool keyIsCorrect(const std::string &key) const;
+
+    /**
+     * @brief Changes user's nick on channel to match the new nick on <client>.
+     *
+     * @param oldNick Old nickname of the client.
+     * @param client The client who's nickname is to be changed.
+     */
+    void changeUserNick(const std::string &oldNick, const Client &client);
 
   private:
     Server                  &_server;
@@ -321,34 +335,3 @@ class Channel {
 };
 
 using OptionalUser = std::optional<std::reference_wrapper<Channel::User>>;
-
-// WARN: Not in subject:
-// enum class ChannelFlag{
-//  ANONYMOUS = 1 << 4,
-//  MODERATED = 1 << 5,
-//  NO_MESSAGES_FROM_OUTSIDE = 1 << 6,
-//  QUIET_CHANNEL = 1 << 7,
-//  PRIVATE_CHANNEL = 1 << 8,
-//  SECRET_CHANNEL = 1 << 9,
-//  SERVER_REOP_CHANNEL = 1 << 10,
-// };
-
-// WARN: Nickname masks not in subject
-// std::string _banMask = "";
-// std::string _banExceptionMask = "";
-
-/* WARN: Not defined in subject
- * a - toggle the anonymous channel flag;
- * m - toggle the moderated channel;
- * n - toggle the no messages to channel from clients on the outside;
- * q - toggle the quiet channel flag;
- * p - toggle the private channel flag;
- * s - toggle the secret channel flag;
- * r - toggle the server reop channel flag;
- * O - give "channel creator" status;
- * v - give / take the voice privilege;
- * b - set / remove ban mask to keep users out;
- * e - set / remove an exception mask to override a ban mask;
- * I - set / remove an invitation mask to automatically override the
- * invite-only flag; };
- */

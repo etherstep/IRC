@@ -1,9 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <set>
 #include <span>
 #include <sstream>
 #include <stdexcept>
@@ -488,5 +490,69 @@ void Server::handleMode(int32_t fd, const Command &cmd) {
     const std::string &modeMessage =
         prefix + " MODE " + channelName + " :" + newModes;
     channel->get().messageAllUsersOnChannel(modeMessage);
+  }
+}
+
+void Server::handleNickname(int32_t fd, const Command &cmd) {
+  LOG << "handling NICK command";
+  Client &client = _clients.at(fd);
+  if (!client.isPasswordOK()) {
+    replyNumeric(fd, Numeric::ERR_PASSWDMISMATCH, ":Incorrect password");
+    return;
+  }
+
+  if (cmd.params.empty()) {
+    replyNumeric(fd, Numeric::ERR_NONICKNAMEGIVEN, ":No nickname given");
+    return;
+  }
+  std::string   nickname = cmd.params[0];
+  Client::State state = client.getState();
+  if (Utils::validateNickname(nickname)) {
+    if (isNicknameInUse(nickname)) {
+      replyNumeric(fd, Numeric::ERR_NICKNAMEINUSE, nickname);
+      return;
+    }
+    if (client.isRegistered()) {
+      std::string oldNick = client.getNickname();
+      std::string oldPrefix = client.generatePrefix();
+      client.setNickname(nickname);
+      handleChangedNick(fd, oldNick, oldPrefix);
+      return;
+    } else {
+      client.setNickname(nickname);
+      _nickToFd.try_emplace(client.getNickname(), fd);
+      client.setState(Client::State::NICK_RECEIVED);
+      replyMessage(fd, client.generatePrefix() + " NICK " + cmd.params[0]);
+    }
+    if (client.isRegistered() && state != client.getState()) {
+      sendWelcomeMessages(fd);
+    }
+  } else {
+    replyNumeric(fd, Numeric::ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
+    return;
+  }
+}
+
+void Server::handleChangedNick(int32_t fd, const std::string &oldNick,
+                               const std::string &oldPrefix) {
+  Client            &client = _clients.at(fd);
+  const std::string &nickname = client.getNickname();
+  messageAllUniqueContacts(fd, oldPrefix + " NICK " + nickname);
+  for (auto &channelName : client.getChannels()) {
+    OptionalChannel channel = findChannel(channelName);
+    if (!channel) {
+      throw std::runtime_error("Channel " + channelName + " not existing");
+    } else {
+      channel->get().changeUserNick(oldNick, client);
+    }
+  }
+  auto it = _nickToFd.find(oldNick);
+  if (it == _nickToFd.end()) {
+    throw std::runtime_error(oldNick + " missing from _nickToFd");
+  }
+  if ((_nickToFd.try_emplace(nickname, fd).second)) {
+    _nickToFd.erase(it);
+  } else {
+    throw std::runtime_error("Failed to change nick for " + oldNick);
   }
 }
