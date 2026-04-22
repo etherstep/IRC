@@ -10,7 +10,7 @@ bool Utils::validateNickname(const std::string &nick) {
   const std::string forbiddenFirst = "$:";
   const std::string forbiddenChannel = "&#";
   const std::string forbiddenPrefix = "~&@%";
-  if (nick.empty() || nick.length() > 9)
+  if (nick.empty() || nick.length() > maxNicknameLength)
     return false;
   if (forbiddenFirst.find(nick[0]) != std::string::npos ||
       forbiddenChannel.find(nick[0]) != std::string::npos ||

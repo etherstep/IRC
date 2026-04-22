@@ -3,9 +3,10 @@
 #include <string>
 
 namespace Utils {
-bool        validateNickname(const std::string &nick);
-bool        isHandshakeCmd(const std::string &cmd);
-std::string getTimestamp();
+constexpr int32_t maxNicknameLength = 15;
+bool              validateNickname(const std::string &nick);
+bool              isHandshakeCmd(const std::string &cmd);
+std::string       getTimestamp();
 }  // namespace Utils
 
 namespace Numeric {
