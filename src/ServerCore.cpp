@@ -115,7 +115,7 @@ void Server::run(void) {
         auto    it = _sockets.find(_epollEvents[i].data.fd);
         ssize_t received;
         if (it != _sockets.end()) {
-          received = it->second.receiveData(buffer, sizeof(buffer));
+          received = it->second.receiveData(buffer, sizeof(buffer) - 1);
         } else {
           epoll_ctl(_epollFD, EPOLL_CTL_DEL, _epollEvents[i].data.fd, NULL);
           continue;
