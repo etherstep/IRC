@@ -23,8 +23,7 @@ In simple terms, an IRC server listens for incoming connections, and provides a 
 - The `server`quits cleanly when receiving a Ctrl-C signal
 
 ## Team & contributions
- - [Julius Pellinen](https://github.com/etherstep) : 
-	 - Makefile
+ - [Usva Pellinen](https://github.com/etherstep) : 
 	 - Wrote the first functioning core server loop
 	 - Mode handling for channels
 - [Antti Pöllänen](https://github.com/Mursupaani):
