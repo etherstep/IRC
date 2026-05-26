@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # IRC
 =======
 *This project has been created as part of the 42 curriculum by jpelline, anpollan and nraatika.*
@@ -63,4 +62,3 @@ and connect to the server with any IRC-client (our testing workhorse was `irssi`
 irssi usage?
 ```
 Happy Internet Relay Chatting!
->>>>>>> Stashed changes
